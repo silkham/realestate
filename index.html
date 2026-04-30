@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0c2340" />
+<title>Partner Tracker — Private Capital Real Estate Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ==================================================================
+     PARTNER TRACKER v3
+     Visual language aligned to macfarlanes.com:
+       - Light cream background, navy primary, serif display headings
+       - FT-style ticker strip + dedicated Markets panel
+       - Business finance integrated in Daily and Weekly
+     ================================================================== */
+
+  :root {
+    --bg: #ffffff;
+    --bg-warm: #faf7f1;
+    --bg-soft: #f5f2e9;
+    --bg-tint: #fbfaf6;
+    --line: #e3ddd0;
+    --line-soft: #ece8de;
+    --line-strong: #c5bca8;
+    --ink: #1a1a1a;
+    --ink-deep: #0c2340;
+    --ink-mid: #4a4a4a;
+    --ink-soft: #6e6e6e;
+    --ink-faint: #9a9591;
+    --navy: #0c2340;
+    --navy-light: #1d3a5f;
+    --navy-pale: #b6c1d2;
+    --gain: #277e63;
+    --gain-bg: rgba(39,126,99,0.08);
+    --loss: #b03a2e;
+    --loss-bg: rgba(176,58,46,0.08);
+    --flat: #6e6e6e;
+    --gold: #b08940;
+    --sage: #6b8e6f;
+    --ft-pink: #fff1e5;
+    --serif: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+    --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+    --max-w: 1320px;
+    --shadow-sm: 0 1px 2px rgba(12,35,64,0.04);
+    --shadow-md: 0 2px 12px rgba(12,35,64,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+  a { color: var(--navy); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  ::selection { background: var(--navy); color: #fff; }
+
+  /* ===== FT-STYLE TICKER STRIP ===== */
+  .ticker-strip {
+    background: var(--ft-pink);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-deep);
+    height: 36px;
+    display: flex;
+    align-items: center;
+    position: sticky; top: 0; z-index: 110;
+  }
+  .ticker-track {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: tickerScroll 110s linear infinite;
+    padding-left: 100%;
+  }
+  .ticker-strip:hover .ticker-track { animation-play-state: paused; }
+  .ticker-cell {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 22px;
+    border-right: 1px solid rgba(12,35,64,0.08);
+  }
+  .ticker-name { font-weight: 600; color: var(--ink-deep); }
+  .ticker-val { color: var(--ink-mid); font-variant-numeric: tabular-nums; }
+  .ticker-delta { font-size: 11px; font-weight: 500; }
+  .ticker-delta.up { color: var(--gain); }
+  .ticker-delta.down { color: var(--loss); }
+  .ticker-delta.flat { color: var(--flat); }
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ===== HEADER ===== */
+  header.topbar {
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 36px; z-index: 100;
+  }
+  .topbar-row {
+    max-width: var(--max-w); margin: 0 auto;
+    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
+  .brand-name {
+    font-family: var(--serif);
+    font-size: 28px; font-weight: 500;
+    color: var(--ink-deep); letter-spacing: -0.005em;
+    line-height: 1;
+  }
+  .brand-divider { width: 1px; height: 18px; background: var(--line-strong); }
+  .brand-tag {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 500; color: var(--ink-soft);
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-soft); padding: 6px 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sage); position: relative;
+  }
+  .status-pill.degraded .status-dot { background: var(--gold); }
+  .status-pill.offline .status-dot { background: var(--loss); }
+
+  /* ===== NAVIGATION ===== */
+  .nav-row {
+    background: var(--bg-warm);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav {
+    max-width: var(--max-w); margin: 0 auto;
+    padding: 0 32px;
+    display: flex; gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    padding: 14px 18px;
+    font-size: 13px; font-weight: 500;
+    color: var(--ink-mid);
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+    font-family: var(--sans);
+  }
+  .nav-btn:first-child { padding-left: 0; }
+  .nav-btn:hover { color: var(--ink-deep); text-decoration: none; }
+  .nav-btn.active {
+    color: var(--ink-deep);
+    border-bottom-color: var(--ink-deep);
+    font-weight: 600;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    max-width: var(--max-w); margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+  .view { display: none; animation: fadeIn .3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ===== TYPOGRAPHY ===== */
+  .eyebrow {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--ink-deep);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin-bottom: 16px;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: ''; width: 24px; height: 1px; background: var(--ink-deep);
+    display: inline-block;
+  }
+  .h-display {
+    font-family: var(--serif);
+    font-size: clamp(40px, 5.5vw, 64px);
+    font-weight: 500; color: var(--ink-deep);
+    letter-spacing: -0.015em; line-height: 1.05;
+    margin-bottom: 18px;
+  }
+  .h-display em {
+    font-style: italic; color: var(--navy-light);
+    font-weight: 400;
+  }
+  .h-section {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 500; color: var(--ink-deep);
+    letter-spacing: -0.01em; line-height: 1.15;
+  }
+  .h-section em { font-style: italic; color: var(--navy-light); font-weight: 400; }
+  .h-card {
+    font-family: var(--serif);
+    font-size: 22px; font-weight: 500;
+    color: var(--ink-deep);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+  }
+  .lede {
+    font-family: var(--serif);
+    font-size: 21px; font-weight: 400;
+    color: var(--ink-mid); line-height: 1.5;
+    max-width: 65ch; font-style: italic;
+  }
+  .label {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--ink-soft);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .meta-text {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-soft); letter-spacing: 0.04em;
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-head {
+    margin: 56px 0 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline;
+    justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  }
+  .section-head:first-child { margin-top: 0; }
+
+  /* ===== HERO ===== */
+  .hero { padding: 16px 0 36px; margin-bottom: 8px; }
+  .hero-meta-row {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex; gap: 36px; flex-wrap: wrap;
+    font-family: var(--sans); font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .hero-meta-row strong {
+    display: block;
+    font-family: var(--serif); font-size: 18px;
+    font-weight: 500; color: var(--ink-deep);
+    margin-top: 2px;
+  }
+
+  /* ===== GRID ===== */
+  .grid {
+    display: grid; gap: 24px;
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .col-12 { grid-column: span 12; }
+  .col-8 { grid-column: span 8; }
+  .col-6 { grid-column: span 6; }
+  .col-4 { grid-column: span 4; }
+  @media (max-width: 960px) {
+    .col-8 { grid-column: span 12; }
+    .col-6 { grid-column: span 12; }
+    .col-4 { grid-column: span 6; }
+  }
+  @media (max-width: 640px) {
+    .col-4 { grid-column: span 12; }
+    .grid { gap: 18px; }
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 26px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+  .card.soft {
+    background: var(--bg-warm);
+    border-color: var(--line-soft);
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; gap: 12px;
+  }
+  .card-body { color: var(--ink-mid); font-size: 15px; line-height: 1.6; }
+  .card-body p + p { margin-top: 12px; }
+
+  /* ===== TAGS ===== */
+  .tag {
+    display: inline-block;
+    font-family: var(--sans); font-size: 10.5px;
+    font-weight: 600; color: var(--ink-soft);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-tint);
+    margin-right: 4px; margin-bottom: 4px;
+  }
+  .tag.navy { color: var(--navy); border-color: var(--navy); background: transparent; }
+  .tag.sage { color: var(--sage); border-color: var(--sage); background: transparent; }
+  .tag.gold { color: var(--gold); border-color: var(--gold); background: transparent; }
+  .tag.crimson { color: var(--loss); border-color: var(--loss); background: var(--loss-bg); }
+  .tag.solid-navy { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* ===== BRIEFING LIST ===== */
+  .briefing-list { list-style: none; }
+  .briefing-item {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 24px;
+    padding: 26px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .briefing-item:last-child { border-bottom: 0; }
+  .briefing-num {
+    font-family: var(--serif);
+    font-size: 30px; font-weight: 400;
+    font-style: italic;
+    color: var(--navy-light);
+    line-height: 1; padding-top: 4px;
+    letter-spacing: -0.01em;
+  }
+  .briefing-content { min-width: 0; }
+  .briefing-title {
+    font-family: var(--serif);
+    font-size: 22px; font-weight: 500;
+    color: var(--ink-deep);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .briefing-why {
+    font-size: 15px; color: var(--ink-mid);
+    line-height: 1.6; margin-bottom: 14px;
+    max-width: 78ch;
+  }
+  .briefing-meta {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    font-size: 12.5px;
+  }
+  .briefing-meta a {
+    color: var(--navy); font-weight: 500;
+    text-decoration: underline; text-underline-offset: 3px;
+    text-decoration-color: var(--line-strong);
+  }
+  .briefing-meta a:hover { text-decoration-color: var(--navy); }
+  .briefing-actions { margin-left: auto; display: flex; gap: 6px; }
+  .icon-btn {
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); border: 1px solid transparent;
+    transition: all .15s;
+  }
+  .icon-btn:hover { color: var(--ink-deep); border-color: var(--line-strong); background: var(--bg-soft); }
+  .icon-btn svg { width: 14px; height: 14px; stroke-width: 1.5; }
+
+  @media (max-width: 640px) {
+    .briefing-item { grid-template-columns: 36px 1fr; gap: 14px; padding: 20px 0; }
+    .briefing-num { font-size: 22px; }
+    .briefing-title { font-size: 18px; }
+    .briefing-why { font-size: 14px; }
+  }
+
+  /* ===== PARTNER CARDS ===== */
+  .partner-card {
+    background: var(--bg-warm);
+    border: 1px solid var(--line-soft);
+    padding: 28px;
+    position: relative;
+  }
+  .partner-card::before {
+    content: ''; position: absolute;
+    left: -1px; top: 28px; bottom: 28px;
+    width: 3px; background: var(--navy);
+  }
+  .partner-eyebrow {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--navy);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .partner-name {
+    font-family: var(--serif); font-size: 24px;
+    font-weight: 500; color: var(--ink-deep);
+    margin-bottom: 4px;
+  }
+  .partner-role {
+    font-family: var(--sans); font-size: 13px;
+    color: var(--ink-soft); margin-bottom: 16px;
+    font-style: italic;
+  }
+  .partner-bio {
+    font-size: 14px; color: var(--ink-mid);
+    line-height: 1.55; padding-bottom: 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .partner-take { margin-top: 16px; font-size: 14.5px; color: var(--ink-mid); line-height: 1.6; }
+  .partner-take-label {
+    font-family: var(--sans); font-size: 10.5px;
+    font-weight: 600; color: var(--ink-deep);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+
+  /* ===== COMPETITOR / FINANCE CARDS ===== */
+  .intel-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .intel-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-warm);
+    gap: 12px; flex-wrap: wrap;
+  }
+  .intel-firm {
+    font-family: var(--serif); font-size: 21px;
+    font-weight: 500; color: var(--ink-deep);
+  }
+  .intel-firm.is-mac { color: var(--navy); }
+  .intel-meta {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-soft); letter-spacing: 0.06em;
+  }
+  .intel-body { padding: 18px 22px; }
+  .intel-deal { font-size: 14.5px; color: var(--ink-mid); line-height: 1.55; }
+  .intel-take {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line-soft);
+    font-size: 13.5px; color: var(--ink-mid);
+    line-height: 1.5; font-style: italic;
+  }
+  .intel-take strong { font-style: normal; color: var(--ink-deep); font-weight: 600; }
+
+  /* ===== SCOREBOARD TABLE ===== */
+  .scoreboard-table {
+    width: 100%; border-collapse: collapse;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .scoreboard-table th, .scoreboard-table td {
+    padding: 13px 18px; text-align: left;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .scoreboard-table th {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--ink-soft);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--bg-warm);
+  }
+  .scoreboard-table tr:last-child td { border-bottom: 0; }
+  .scoreboard-table tr.is-mac td { background: rgba(12,35,64,0.025); }
+  .scoreboard-table .firm {
+    font-family: var(--serif); font-size: 17px;
+    font-weight: 500; color: var(--ink-deep);
+  }
+  .scoreboard-table .firm.mac { color: var(--navy); font-weight: 600; }
+  .scoreboard-table .count {
+    font-family: var(--mono); font-size: 17px;
+    font-weight: 500; color: var(--ink-deep);
+  }
+  .scoreboard-table td.muted { color: var(--ink-soft); font-size: 13px; }
+
+  /* ===== TALKING POINTS ===== */
+  .talk-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 26px 30px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .talk-card:hover { border-color: var(--navy); background: var(--bg-tint); }
+  .talk-quote {
+    font-family: var(--serif);
+    font-size: 19px; font-weight: 400;
+    font-style: italic;
+    color: var(--ink-deep);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    padding-left: 20px;
+    position: relative;
+  }
+  .talk-quote::before {
+    content: '\201C';
+    position: absolute; left: -2px; top: -8px;
+    font-size: 50px; line-height: 1; color: var(--navy-light);
+    opacity: 0.5; font-family: var(--serif);
+  }
+  .talk-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; padding-left: 20px;
+  }
+  .talk-context { font-size: 12.5px; color: var(--ink-soft); flex: 1; }
+  .talk-copy-btn {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--navy);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 6px 14px; border: 1px solid var(--navy);
+    transition: background .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .talk-copy-btn:hover { background: var(--navy); color: #fff; }
+
+  /* ===== DEAL TABLE ===== */
+  .deal-controls {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .deal-search {
+    flex: 1; min-width: 280px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 12px 16px;
+    font-family: var(--sans); font-size: 14px;
+  }
+  .deal-search:focus { outline: none; border-color: var(--navy); }
+  .deal-filter {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 12px 14px;
+    font-family: var(--sans); font-size: 12px;
+    font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer;
+  }
+  .deal-table-wrap {
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    background: var(--bg);
+  }
+  table.deals { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.deals th {
+    text-align: left;
+    padding: 14px 16px;
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: var(--ink-soft);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-warm);
+    cursor: pointer; user-select: none;
+    white-space: nowrap;
+  }
+  table.deals th:hover { color: var(--navy); }
+  table.deals td {
+    padding: 16px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  table.deals tr:last-child td { border-bottom: 0; }
+  table.deals tr.is-mac td { background: rgba(12,35,64,0.025); }
+  table.deals tr:hover td { background: var(--bg-tint); }
+  table.deals tr.is-mac:hover td { background: rgba(12,35,64,0.05); }
+  .deal-buyer { font-weight: 600; color: var(--ink-deep); }
+  .deal-value { font-family: var(--mono); color: var(--navy); white-space: nowrap; font-weight: 500; }
+  .deal-takeaway { color: var(--ink-mid); max-width: 360px; line-height: 1.5; font-size: 13px; }
+  .deal-mac { color: var(--navy); font-weight: 500; }
+  .empty-row td { text-align: center; padding: 48px; color: var(--ink-faint); font-style: italic; }
+
+  /* ===== MARKETS PANEL ===== */
+  .markets-grid {
+    display: grid; gap: 24px;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 900px) { .markets-grid { grid-template-columns: 1fr; } }
+  .markets-panel {
+    background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .markets-panel h3 {
+    font-family: var(--serif); font-size: 19px;
+    font-weight: 500; color: var(--ink-deep);
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-warm);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .markets-panel h3 .src {
+    font-family: var(--mono); font-size: 10px;
+    font-weight: 500; color: var(--ink-soft);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .markets-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .markets-table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .markets-table tr:last-child td { border-bottom: 0; }
+  .markets-table .name { font-weight: 500; color: var(--ink-deep); }
+  .markets-table .ticker { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+  .markets-table .val { font-family: var(--mono); font-weight: 500; color: var(--ink-deep); text-align: right; font-variant-numeric: tabular-nums; }
+  .markets-table .delta { font-family: var(--mono); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+  .markets-table .delta.up { color: var(--gain); }
+  .markets-table .delta.down { color: var(--loss); }
+  .markets-table .delta.flat { color: var(--flat); }
+  .yields-table .y-name { font-weight: 500; color: var(--ink-deep); }
+  .yields-table .y-val { font-family: var(--mono); font-weight: 600; color: var(--navy); text-align: right; }
+  .markets-foot {
+    padding: 12px 22px;
+    background: var(--bg-warm);
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-soft); letter-spacing: 0.04em;
+  }
+
+  /* ===== NOTES ===== */
+  .notes-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 800px) { .notes-grid { grid-template-columns: 1fr; gap: 24px; } }
+  .note-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 16px;
+    font-family: var(--sans); font-size: 14px;
+    line-height: 1.55; resize: vertical; min-height: 130px;
+  }
+  .note-input:focus { outline: none; border-color: var(--navy); }
+  .saved-list { list-style: none; }
+  .saved-item {
+    background: var(--bg-warm);
+    border: 1px solid var(--line-soft);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .saved-item-content { flex: 1; min-width: 0; font-size: 14px; }
+  .saved-item-time {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-soft); margin-top: 6px;
+    letter-spacing: 0.06em;
+  }
+  .empty-note {
+    color: var(--ink-faint); font-style: italic;
+    padding: 24px; text-align: center;
+    border: 1px dashed var(--line-soft);
+  }
+  .btn-primary {
+    font-family: var(--sans); font-size: 12px;
+    font-weight: 600; color: #fff;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--navy); border: 1px solid var(--navy);
+    padding: 10px 18px;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-ghost {
+    font-family: var(--sans); font-size: 12px;
+    font-weight: 600; color: var(--navy);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: transparent; border: 1px solid var(--navy);
+    padding: 8px 14px;
+    transition: background .15s, color .15s;
+  }
+  .btn-ghost:hover { background: var(--navy); color: #fff; }
+
+  /* ===== FUTURE PARTNER CARD ===== */
+  .fp-card {
+    background: var(--navy);
+    color: #fff;
+    padding: 32px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .fp-card::before {
+    content: ''; position: absolute;
+    right: -60px; top: -60px;
+    width: 200px; height: 200px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+  .fp-eyebrow {
+    font-family: var(--sans); font-size: 11px;
+    font-weight: 600; color: rgba(255,255,255,0.65);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin-bottom: 14px;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .fp-eyebrow::before {
+    content: ''; width: 24px; height: 1px; background: rgba(255,255,255,0.6);
+  }
+  .fp-headline {
+    font-family: var(--serif); font-size: 28px;
+    font-weight: 500; color: #fff;
+    line-height: 1.2; margin-bottom: 14px;
+  }
+  .fp-body { color: rgba(255,255,255,0.85); font-size: 15.5px; line-height: 1.6; max-width: 70ch; }
+
+  /* ===== FOOTER ===== */
+  footer.foot {
+    border-top: 1px solid var(--line);
+    padding: 32px;
+    margin-top: 96px;
+    background: var(--bg-warm);
+  }
+  footer.foot .foot-inner {
+    max-width: var(--max-w); margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center; gap: 24px;
+    flex-wrap: wrap;
+  }
+  footer.foot p {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-soft); letter-spacing: 0.04em;
+  }
+  footer.foot .foot-brand {
+    font-family: var(--serif); font-size: 16px;
+    font-weight: 500; color: var(--ink-deep);
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink-deep); color: #fff;
+    padding: 12px 22px; font-family: var(--sans);
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    transition: transform .35s ease;
+    z-index: 200; box-shadow: 0 8px 24px rgba(12,35,64,0.25);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== UTILITIES ===== */
+  .stack-md > * + * { margin-top: 18px; }
+  .muted { color: var(--ink-soft); }
+
+  @media (max-width: 640px) {
+    .topbar-row { padding: 14px 20px; gap: 12px; }
+    .nav { padding: 0 20px; }
+    main { padding: 32px 20px 64px; }
+    .card { padding: 22px; }
+    .intel-head, .intel-body { padding: 14px 18px; }
+    .talk-card { padding: 22px 24px; }
+    .fp-card { padding: 24px; }
+    .hero { padding: 12px 0 24px; }
+    .hero-meta-row { gap: 18px; }
+    .brand-name { font-size: 22px; }
+    .brand-tag { display: none; }
+    .section-head { margin: 40px 0 22px; }
+    .ticker-strip { font-size: 11px; height: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     FT-STYLE TICKER STRIP
+     ============================================================ -->
+<div class="ticker-strip" aria-hidden="true">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <div class="brand">
+      <span class="brand-name">Partner Tracker</span>
+      <span class="brand-divider"></span>
+      <span class="brand-tag">PCRE Intelligence</span>
+    </div>
+    <div class="status-pill" id="status-pill">
+      <span class="status-dot"></span>
+      <span id="status-text">Initialising</span>
+    </div>
+  </div>
+  <div class="nav-row">
+    <nav class="nav">
+      <button class="nav-btn active" data-view="daily">Daily Briefing</button>
+      <button class="nav-btn" data-view="weekly">Weekly Deep Dive</button>
+      <button class="nav-btn" data-view="markets">Markets</button>
+      <button class="nav-btn" data-view="competitors">Competitors</button>
+      <button class="nav-btn" data-view="deals">Deal Database</button>
+      <button class="nav-btn" data-view="legal">Legal &amp; Reg</button>
+      <button class="nav-btn" data-view="talking">Talking Points</button>
+      <button class="nav-btn" data-view="partner">Partner Mode</button>
+      <button class="nav-btn" data-view="notes">Bookmarks</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============================================================
+       DAILY BRIEFING
+       ============================================================ -->
+  <section class="view active" id="view-daily">
+
+    <div class="hero">
+      <div class="eyebrow"><span id="hero-date">Loading</span></div>
+      <h1 class="h-display">Today, the desk needs to know <em>nine things</em>.</h1>
+      <p class="lede">Compiled from public deal announcements, GOV.UK / FCA / CMA notices, sponsor earnings, debt-market wires, fund flow data and competitor press releases &mdash; curated for the Macfarlanes Private Capital Real Estate desk.</p>
+
+      <div class="hero-meta-row">
+        <div>Read time<strong>~5 min</strong></div>
+        <div>BoE rate<strong>3.75%</strong></div>
+        <div>Sources live<strong id="hero-sources">—</strong></div>
+        <div>Last refresh<strong id="hero-refresh">—</strong></div>
+      </div>
+    </div>
+
+    <!-- Top 10 -->
+    <div class="section-head">
+      <h2 class="h-section">Top ten <em>things to know</em></h2>
+      <span class="meta-text">Updated <span id="briefing-time">—</span></span>
+    </div>
+    <ul class="briefing-list" id="briefing-list"></ul>
+
+    <!-- Markets snapshot (compact) -->
+    <div class="section-head">
+      <h2 class="h-section">Markets <em>snapshot</em></h2>
+      <span class="meta-text">FX live &middot; equity 15-min &middot; yields curated</span>
+    </div>
+    <div class="markets-grid">
+      <div class="markets-panel">
+        <h3>Rates &amp; gilts <span class="src">BoE / Curated</span></h3>
+        <table class="markets-table" id="rates-table"></table>
+        <div class="markets-foot">Source: Bank of England &middot; gilts indicative</div>
+      </div>
+      <div class="markets-panel">
+        <h3>UK-listed REITs <span class="src">Live</span></h3>
+        <table class="markets-table" id="reits-compact"></table>
+        <div class="markets-foot">Source: live equities feed &middot; updated on page load</div>
+      </div>
+    </div>
+
+    <!-- Competitor 24h -->
+    <div class="section-head">
+      <h2 class="h-section">Competitor <em>mandates</em> &mdash; last 24 hours</h2>
+      <span class="meta-text">Public announcements only</span>
+    </div>
+    <div id="daily-competitor-feed"></div>
+
+    <!-- Business finance 24h -->
+    <div class="section-head">
+      <h2 class="h-section">Business finance <em>last 24h</em></h2>
+      <span class="meta-text">Fund flows &middot; sponsor earnings &middot; debt markets</span>
+    </div>
+    <div id="daily-finance-feed"></div>
+
+    <!-- Boss insights -->
+    <div class="section-head">
+      <h2 class="h-section">What the <em>partners</em> care about today</h2>
+    </div>
+    <div class="grid">
+      <div class="col-6">
+        <div class="partner-card">
+          <div class="partner-eyebrow">— Reporting partner</div>
+          <div class="partner-name">Victoria Hills</div>
+          <div class="partner-role">Partner &amp; Head of Private Capital Real Estate</div>
+          <div class="partner-bio">PE / M&amp;A / JV in real estate &amp; hotels. Joined October 2024 from Freshfields to build the practice. Crown deals: Pandox / Dalata €1.7bn, Aermont / Sunrise €1bn JV.</div>
+          <div class="partner-take" id="vh-take"></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="partner-card">
+          <div class="partner-eyebrow">— Reporting partner</div>
+          <div class="partner-name">Andrew Hughes</div>
+          <div class="partner-role">Partner, Real Estate (PCRE)</div>
+          <div class="partner-bio">Direct &amp; indirect equity into real estate. Offices, logistics, BTR/PRS, student accommodation, hotels, data centres. Co-author of the firm's Operational Real Estate report.</div>
+          <div class="partner-take" id="ah-take"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Future partner mindset -->
+    <div class="section-head">
+      <h2 class="h-section">The <em>future-partner</em> mindset</h2>
+    </div>
+    <div class="fp-card">
+      <div class="fp-eyebrow">A move you could make today</div>
+      <div class="fp-headline" id="fp-headline">—</div>
+      <p class="fp-body" id="fp-body">—</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WEEKLY DEEP DIVE
+       ============================================================ -->
+  <section class="view" id="view-weekly">
+    <div class="hero">
+      <div class="eyebrow"><span>30-minute train read &middot; <span id="week-range">this week</span></span></div>
+      <h1 class="h-display">Weekly <em>deep dive</em></h1>
+      <p class="lede">The week's biggest deals, the competitor scoreboard, the business-finance moves, sectors in motion, and the conversations to be ready for at next Monday's catch-up.</p>
+    </div>
+
+    <div class="section-head">
+      <h2 class="h-section">Biggest <em>deals</em> this week</h2>
+    </div>
+    <div id="weekly-deals"></div>
+
+    <div class="section-head">
+      <h2 class="h-section">Competitor <em>scoreboard</em> &middot; last 30 days</h2>
+      <span class="meta-text">Public mandates only</span>
+    </div>
+    <table class="scoreboard-table" id="scoreboard"></table>
+
+    <div class="section-head">
+      <h2 class="h-section">Competitor <em>mandates</em> in detail</h2>
+      <span class="meta-text">What they won &middot; what we'd take away</span>
+    </div>
+    <div id="weekly-competitor-feed"></div>
+
+    <div class="section-head">
+      <h2 class="h-section">Business finance &mdash; <em>this week</em></h2>
+      <span class="meta-text">Fund flows &middot; sponsor earnings &middot; debt markets</span>
+    </div>
+    <div id="weekly-finance-feed"></div>
+
+    <div class="section-head">
+      <h2 class="h-section">Sectors <em>heating up</em></h2>
+    </div>
+    <div class="grid" id="sectors-grid"></div>
+
+    <div class="section-head">
+      <h2 class="h-section">What sponsors <em>are buying</em></h2>
+    </div>
+    <div class="grid" id="sponsors-grid"></div>
+
+    <div class="section-head">
+      <h2 class="h-section">Future <em>mandates radar</em></h2>
+      <span class="meta-text">Six conversations to have</span>
+    </div>
+    <div class="grid" id="radar-grid"></div>
+  </section>
+
+  <!-- ============================================================
+       MARKETS
+       ============================================================ -->
+  <section class="view" id="view-markets">
+    <div class="hero">
+      <div class="eyebrow"><span>Rates &middot; equities &middot; yields &middot; FX</span></div>
+      <h1 class="h-display">Markets <em>terminal</em></h1>
+      <p class="lede">Live UK gilt and SONIA context, GBP crosses, the listed-REIT board, and prime real-estate yields published quarterly by Savills, JLL and CBRE.</p>
+    </div>
+
+    <div class="markets-grid">
+      <div class="markets-panel">
+        <h3>Rates &amp; gilts <span class="src">BoE / Curated</span></h3>
+        <table class="markets-table" id="rates-table-full"></table>
+        <div class="markets-foot">Source: Bank of England &middot; updated daily</div>
+      </div>
+      <div class="markets-panel">
+        <h3>FX &middot; GBP crosses <span class="src">Frankfurter (ECB) live</span></h3>
+        <table class="markets-table" id="fx-table"></table>
+        <div class="markets-foot">Source: ECB via Frankfurter API &middot; daily reference rates</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="h-section">UK-listed <em>REITs &amp; property</em></h2>
+      <span class="meta-text">Live (best effort) &middot; falls back to last close</span>
+    </div>
+    <div class="markets-panel">
+      <table class="markets-table" id="reits-table"></table>
+      <div class="markets-foot">Source: equities feed via proxy &middot; 15-minute delay</div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="h-section">Prime real-estate <em>yields</em></h2>
+      <span class="meta-text">Curated, refreshed quarterly</span>
+    </div>
+    <div class="markets-panel">
+      <table class="markets-table yields-table" id="yields-table"></table>
+      <div class="markets-foot">Sources: Savills, JLL, CBRE Q1 2026 prints &middot; indicative prime yields</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       COMPETITORS
+       ============================================================ -->
+  <section class="view" id="view-competitors">
+    <div class="hero">
+      <div class="eyebrow"><span>Magic Circle &middot; US elite &middot; mid-market peers</span></div>
+      <h1 class="h-display">Competitor <em>movement</em></h1>
+      <p class="lede">What Freshfields, Linklaters, Kirkland, Latham, Simpson Thacher, Travers Smith, Goodwin and the rest are winning &mdash; and what each move implies for our pitch list and pricing.</p>
+    </div>
+    <div id="full-competitor-feed"></div>
+  </section>
+
+  <!-- ============================================================
+       DEALS
+       ============================================================ -->
+  <section class="view" id="view-deals">
+    <div class="hero">
+      <div class="eyebrow"><span>PERE transactions &middot; rolling database</span></div>
+      <h1 class="h-display">Deal <em>database</em></h1>
+      <p class="lede">Searchable. Sortable. Filtered by sector, geography, value band or adviser. Macfarlanes mandates highlighted in navy.</p>
+    </div>
+    <div class="deal-controls">
+      <input type="text" class="deal-search" id="deal-search" placeholder="Search buyer, seller, sector, asset, or adviser…" />
+      <select class="deal-filter" id="deal-filter-sector"><option value="">All sectors</option></select>
+      <select class="deal-filter" id="deal-filter-mac">
+        <option value="">All advisers</option>
+        <option value="mac">Macfarlanes only</option>
+        <option value="other">Competitor only</option>
+      </select>
+    </div>
+    <div class="deal-table-wrap">
+      <table class="deals" id="deal-table">
+        <thead>
+          <tr>
+            <th data-sort="date">Date</th>
+            <th data-sort="buyer">Buyer</th>
+            <th data-sort="seller">Seller</th>
+            <th data-sort="sector">Sector</th>
+            <th data-sort="geo">Geography</th>
+            <th data-sort="value">Value</th>
+            <th>Advisers</th>
+            <th>Key takeaway</th>
+          </tr>
+        </thead>
+        <tbody id="deal-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       LEGAL & REG
+       ============================================================ -->
+  <section class="view" id="view-legal">
+    <div class="hero">
+      <div class="eyebrow"><span>UK &middot; GOV.UK / FCA / HMRC / CMA / judgments</span></div>
+      <h1 class="h-display">Legal &amp; <em>regulatory</em></h1>
+      <p class="lede">Translated from legal-ese into commercial summaries. What changed, why it matters, and what to flag to clients.</p>
+    </div>
+    <div id="legal-feed"></div>
+  </section>
+
+  <!-- ============================================================
+       TALKING POINTS
+       ============================================================ -->
+  <section class="view" id="view-talking">
+    <div class="hero">
+      <div class="eyebrow"><span>Office-ready commentary</span></div>
+      <h1 class="h-display">Talking <em>points</em></h1>
+      <p class="lede">Copy-and-paste lines for the partner kitchen, internal Slack, client calls, or a panel question. Tap any quote to copy.</p>
+    </div>
+    <div id="talking-feed"></div>
+  </section>
+
+  <!-- ============================================================
+       PARTNER MODE
+       ============================================================ -->
+  <section class="view" id="view-partner">
+    <div class="hero">
+      <div class="eyebrow"><span>Weekly &middot; what a newly promoted partner would notice</span></div>
+      <h1 class="h-display">Partner <em>mode</em></h1>
+      <p class="lede">Not what's in the press &mdash; what's <em>under</em> the press. Revenue opportunities, sponsor movement, market dislocation, cross-sell openings.</p>
+    </div>
+    <div id="partner-mode"></div>
+  </section>
+
+  <!-- ============================================================
+       BOOKMARKS
+       ============================================================ -->
+  <section class="view" id="view-notes">
+    <div class="hero">
+      <div class="eyebrow"><span>Local only &middot; saved in this browser</span></div>
+      <h1 class="h-display">Bookmarks &amp; <em>follow-ups</em></h1>
+      <p class="lede">Capture names to mention, deals to flag, and matters to raise in your next supervision. Stays on this device.</p>
+    </div>
+    <div class="notes-grid">
+      <div>
+        <div class="label" style="margin-bottom:12px;">New note</div>
+        <textarea class="note-input" id="note-input" placeholder="Mention to Victoria: Pandox / Dalata precedent vs Welltower / Barchester structure on the next pitch…"></textarea>
+        <button class="btn-primary" id="note-save" style="margin-top:14px;">Save Note</button>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:12px;">Saved &middot; <span id="note-count">0</span></div>
+        <ul class="saved-list" id="saved-list"></ul>
+      </div>
+    </div>
+    <div class="section-head">
+      <h2 class="h-section">Saved <em>stories</em></h2>
+      <button class="btn-ghost" id="export-bookmarks">Export all</button>
+    </div>
+    <div id="saved-stories"></div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-brand">Partner Tracker</div>
+    <p>Built for the Macfarlanes PCRE desk &middot; v3 &middot; Not legal advice &middot; All deal data from public sources</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Copied</div>
+
+<script id="app-script">
+/* =====================================================================
+   PARTNER TRACKER v3 — PCRE Intelligence
+   Built for the Macfarlanes Private Capital Real Estate desk.
+   ===================================================================== */
+
+(function () {
+  'use strict';
+
+  /* ============================================================
+     CONFIG — multi-proxy CORS chain
+     ============================================================ */
+
+  const PROXIES = [
+    { name: 'corsproxy', build: function (u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); } },
+    { name: 'codetabs',  build: function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); } },
+    { name: 'allorigins',build: function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } }
+  ];
+  const FETCH_TIMEOUT_MS = 9000;
+
+  // Live feeds. `direct: true` = CORS-enabled at source.
+  const FEEDS = [
+    { key: 'gov',  label: 'GOV.UK', direct: true, parser: 'gov',
+      url: 'https://www.gov.uk/api/search.json?count=20&order=-public_timestamp&filter_organisations[]=competition-and-markets-authority&filter_organisations[]=hm-treasury&filter_organisations[]=ministry-of-housing-communities-and-local-government&filter_organisations[]=hm-revenue-customs',
+      tag: 'legal' },
+    { key: 'fca',  label: 'FCA', parser: 'rss', tag: 'legal',
+      url: 'https://www.fca.org.uk/news/rss.xml' },
+    { key: 'boe',  label: 'Bank of England', parser: 'atom', tag: 'legal',
+      url: 'https://www.bankofengland.co.uk/news.atom' },
+    { key: 'bbc',  label: 'BBC Business', parser: 'rss', tag: 'market',
+      url: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
+    { key: 'pweek',label: 'Property Week', parser: 'rss', tag: 'market',
+      url: 'https://www.propertyweek.com/Rss' }
+  ];
+
+  // Frankfurter — direct CORS-enabled, free, ECB-backed FX rates
+  const FX_URL = 'https://api.frankfurter.dev/v1/latest?base=GBP&symbols=USD,EUR,JPY,CHF';
+
+  // Stooq CSV — single-ticker quotes; fetched via proxy chain
+  // Tickers: ^FTSE (FTSE 100), ^FTMC (FTSE 250), SGRO.UK (Segro), BLND.UK (British Land), LAND.UK (Land Securities),
+  //          UTG.UK (UNITE), BBOX.UK (Tritax Big Box), GPOR.UK (Great Portland), DLN.UK (Derwent), WKP.UK (Workspace)
+  const STOOQ_BASE = 'https://stooq.com/q/l/?f=sd2t2ohlcvn&h&e=csv&s=';
+
+  const REIT_TICKERS = [
+    { symbol: 'sgro.uk', name: 'Segro', desc: 'Logistics REIT' },
+    { symbol: 'blnd.uk', name: 'British Land', desc: 'Diversified REIT' },
+    { symbol: 'land.uk', name: 'Land Securities', desc: 'Office / mixed' },
+    { symbol: 'utg.uk',  name: 'UNITE Group', desc: 'Student housing' },
+    { symbol: 'bbox.uk', name: 'Tritax Big Box', desc: 'Logistics / DC' },
+    { symbol: 'gpor.uk', name: 'Great Portland', desc: 'London offices' },
+    { symbol: 'dln.uk',  name: 'Derwent London', desc: 'London offices' },
+    { symbol: 'wkp.uk',  name: 'Workspace', desc: 'Flex / SME' }
+  ];
+
+  const INDEX_TICKERS = [
+    { symbol: '^ftse', name: 'FTSE 100', desc: 'UK large-cap' },
+    { symbol: '^ftmc', name: 'FTSE 250', desc: 'UK mid-cap' }
+  ];
+
+  /* ============================================================
+     CURATED INTELLIGENCE
+     ============================================================ */
+
+  const TODAY = new Date('2026-04-30');
+
+  // Markets — rates & gilts (curated, source-attributed)
+  const RATES_DATA = [
+    { name: 'BoE Bank Rate',           ticker: 'BOE',         val: '3.75%',  delta: 'Held 19 Mar (unanimous)', tone: 'flat', emphasis: true },
+    { name: 'CPI inflation (YoY)',     ticker: 'ONS',         val: '3.0%',   delta: 'Jan print &middot; above target', tone: 'down' },
+    { name: 'SONIA O/N',                ticker: 'SONIA',       val: '3.71%',  delta: '-1bp d/d', tone: 'down' },
+    { name: '5-Y SONIA swap',           ticker: 'GBP 5Y',      val: '3.84%',  delta: '+2bp d/d', tone: 'up' },
+    { name: '10-Y gilt yield',          ticker: 'UKT10Y',      val: '4.42%',  delta: '+3bp d/d', tone: 'up' },
+    { name: 'IRS prime RE 5Y rate',     ticker: 'RE-FIN',      val: '~5.1%',  delta: 'All-in cost', tone: 'flat' },
+    { name: 'Brent crude',              ticker: 'BRT',         val: '$94.20', delta: 'Iran-war premium', tone: 'up' }
+  ];
+
+  // Prime real-estate yields — Q1 2026 prints from Savills/JLL/CBRE
+  const YIELDS_DATA = [
+    { name: 'Prime UK logistics',           val: '4.75%',  delta: 'Stable', tone: 'flat' },
+    { name: 'European prime logistics (avg)', val: '4.70%', delta: '-10bp YoY', tone: 'up' },
+    { name: 'Prime City office (London)',   val: '6.00%',  delta: 'Wide vs cycle', tone: 'down' },
+    { name: 'Prime West End office',        val: '4.25%',  delta: 'Recovery in prime', tone: 'up' },
+    { name: 'Prime UK BTR',                 val: '4.50%',  delta: 'Stable', tone: 'flat' },
+    { name: 'Prime UK PBSA',                val: '4.75%',  delta: 'Tightening', tone: 'up' },
+    { name: 'Prime UK supermarket',         val: '5.25%',  delta: 'Stable', tone: 'flat' },
+    { name: 'Prime UK self-storage',        val: '5.75%',  delta: 'Stable', tone: 'flat' },
+    { name: 'Prime UK senior care (RIDEA)', val: 'IRR ~10-12%', delta: 'Welltower comp', tone: 'flat' },
+    { name: 'Prime hyperscale data centre', val: '6.50%',  delta: 'Limited comparable', tone: 'flat' }
+  ];
+
+  // FT-ticker default seed (replaced by live data when fetched)
+  const TICKER_SEED = [
+    { name: 'BoE', val: '3.75%', delta: 'HOLD', tone: 'flat' },
+    { name: 'CPI', val: '3.0%', delta: '', tone: 'down' },
+    { name: 'GBP/USD', val: '1.262', delta: '+0.4%', tone: 'up' },
+    { name: 'GBP/EUR', val: '1.182', delta: '-0.1%', tone: 'down' },
+    { name: 'FTSE 100', val: '8,415', delta: '+0.2%', tone: 'up' },
+    { name: 'SGRO', val: '742p', delta: '+1.1%', tone: 'up' },
+    { name: 'BLND', val: '388p', delta: '-0.3%', tone: 'down' },
+    { name: 'UTG', val: '845p', delta: '+0.6%', tone: 'up' },
+    { name: 'BBOX', val: '142p', delta: '+0.4%', tone: 'up' },
+    { name: '10Y Gilt', val: '4.42%', delta: '+3bp', tone: 'up' },
+    { name: 'Brent', val: '$94.20', delta: 'Iran prem.', tone: 'up' },
+    { name: 'Prime Logs', val: '4.75%', delta: 'Stable', tone: 'flat' },
+    { name: 'Prime BTR', val: '4.50%', delta: 'Stable', tone: 'flat' },
+    { name: 'BREIT NAV', val: '+0.8% Q1', delta: 'Core+', tone: 'up' },
+    { name: 'BX AUM', val: '$1.30T', delta: '+12% YoY', tone: 'up' }
+  ];
+
+  // 16 verified public deals
+  const DEAL_DB = [
+    { date:'2026-04-27', buyer:"L&G Student Living Ltd fund", seller:'Confidential', sector:'Student Housing', geo:'UK (university city)', value:'£43m',
+      advisers:{buyer:'Macfarlanes (A. Hughes)', seller:'—'}, mac:true,
+      takeaway:'245-room PBSA in supply-constrained market. Andrew Hughes-led. Reinforces L&G\'s sustained institutional appetite for premium student housing.' },
+    { date:'2026-03-31', buyer:'Brookfield Asset Management', seller:'Blackstone (Fidere)', sector:'BTR / Living', geo:'Madrid, ES', value:'€1.2bn',
+      advisers:{buyer:'n/d', seller:'n/d'}, mac:false,
+      takeaway:'First €1bn+ European RE deal post-Iran-war. Largest Spanish multifamily trade since GFC. Bid-ask spread narrowing.' },
+    { date:'2026-02-10', buyer:'Welltower Inc.', seller:'McManus / Magnier / Desmond (Barchester)', sector:'Healthcare RE', geo:'UK', value:'£5.2bn',
+      advisers:{buyer:'Knight Frank (sole adviser)', seller:'Knight Frank'}, mac:false,
+      takeaway:'World\'s largest senior-care deal. RIDEA structure on 111 communities. Now under CMA Phase 1 review — divestment opportunities likely.' },
+    { date:'2026-02-10', buyer:'Welltower Inc.', seller:'HC-One shareholders', sector:'Healthcare RE', geo:'UK', value:'£1.2bn',
+      advisers:{buyer:'n/d', seller:'n/d'}, mac:false,
+      takeaway:'100% equity buy. Funded partly via repayment of Welltower\'s £660m COVID-era loan with embedded warrants. Credit-to-equity blueprint.' },
+    { date:'2025-12-10', buyer:'Hayfin Capital Management', seller:'Nuveen Real Estate', sector:'Offices', geo:'London (City)', value:'n/d',
+      advisers:{buyer:'Macfarlanes (A. Hughes, L. Bretherton, S. Shucksmith)', seller:'n/d'}, mac:true,
+      takeaway:'70 St Mary Axe — landmark London office. Notable: credit-fund manager taking direct equity in a trophy office. Cross-sell signal.' },
+    { date:'2025-11-19', buyer:'Pandox AB', seller:'Dalata Hotel Group plc shareholders', sector:'Hotels', geo:'UK / Ireland', value:'€1.7bn',
+      advisers:{buyer:'Macfarlanes (V. Hills)', seller:'n/d'}, mac:true,
+      takeaway:'Scheme of arrangement. Macfarlanes\' crown PERE deal under Victoria Hills. Includes operating-business framework with Scandic — textbook OPRE.' },
+    { date:'2025-09-15', buyer:'Aermont (ACREF V)', seller:'JV with Sunrise Real Estate', sector:'Logistics', geo:'UK + EU', value:'~€1bn target',
+      advisers:{buyer:'Macfarlanes (V. Hills)', seller:'—'}, mac:true,
+      takeaway:'Programmatic JV for UK / EU logistics development. €1bn portfolio target. Logistics conviction despite financing pressure.' },
+    { date:'2025-07-22', buyer:'KKR + Stonepeak', seller:'Assura plc shareholders', sector:'Healthcare RE', geo:'UK', value:'£1.7bn',
+      advisers:{buyer:'Simpson Thacher / Kirkland', seller:'n/d'}, mac:false,
+      takeaway:'NHS landlord taken private after bidding war vs PHP. KKR raised offer to win. UK primary-care RE a clear PE target.' },
+    { date:'2025-08-05', buyer:'Blackstone (CMBS-funded)', seller:'Haven Holiday Parks', sector:'Hotels / Leisure', geo:'UK', value:'£1.54bn (CMBS)',
+      advisers:{buyer:'n/d', seller:'n/d'}, mac:false,
+      takeaway:'UK\'s largest CMBS sale since GFC. Funding template: Blackstone uses CMBS to lock cheap floating-rate debt. Replicable for operational RE.' },
+    { date:'2025-06-15', buyer:'Blackstone consortium', seller:'Warehouse REIT shareholders', sector:'Logistics', geo:'UK', value:'£500m+',
+      advisers:{buyer:'Simpson Thacher (likely)', seller:'n/d'}, mac:false,
+      takeaway:'Listed-to-private logistics consolidation. Continued Blackstone confidence in UK industrial. Expect more take-private mid-cap REIT plays.' },
+    { date:'2025-12-15', buyer:'DBMS 2025-1 DAC noteholders', seller:'Blackstone (originator)', sector:'CMBS / Logistics', geo:'UK', value:'£828m CMBS',
+      advisers:{buyer:'Morgan Stanley / Deutsche Bank (arrangers)', seller:'—'}, mac:false,
+      takeaway:'Securitisation of Warehouse REIT industrial portfolio. Sets pricing benchmark for UK logistics CMBS. Tight margins reflect strong investor demand.' },
+    { date:'2025-05-28', buyer:'CBRE Investment Management', seller:'Hillwood', sector:'Logistics', geo:'US + Pan-Europe', value:'~$4.5bn',
+      advisers:{buyer:'n/d', seller:'Macfarlanes'}, mac:true,
+      takeaway:'Cross-border industrial portfolio sale. Macfarlanes sell-side. Demonstrates desk capability for billion-dollar logistics work.' },
+    { date:'2025-04-08', buyer:'KKR', seller:'BREIT', sector:'Student Housing', geo:'US', value:'$1.64bn',
+      advisers:{buyer:'Simpson Thacher', seller:'n/d'}, mac:false,
+      takeaway:'PBSA portfolio (19 assets). PBSA institutionalising globally. Read-across for UK student deals.' },
+    { date:'2025-03-18', buyer:'Stanhope + Cadillac Fairview + St John\'s College Oxford', seller:'JV partners', sector:'Life Sciences', geo:'Oxford, UK', value:'£700m',
+      advisers:{buyer:'Macfarlanes', seller:'—'}, mac:true,
+      takeaway:'Oxford North innovation district JV. Public-private structure with Oxbridge college. Reinforces Macfarlanes\' niche in complex multi-party JVs.' },
+    { date:'2025-02-12', buyer:'Dromeus Capital Group', seller:'JV with Apto Partners', sector:'Data Centres', geo:'Athens, GR', value:'n/d',
+      advisers:{buyer:'Macfarlanes', seller:'—'}, mac:true,
+      takeaway:'Hyperscale DC development JV. Cross-border PE / RE / infra convergence. DC work is the highest-margin frontier of OPRE.' },
+    { date:'2024-11-15', buyer:'AXA IM Alts', seller:'Various LPs', sector:'Life Sciences', geo:'Europe', value:'€1.9bn',
+      advisers:{buyer:'Various', seller:'Macfarlanes (significant LP)'}, mac:true,
+      takeaway:'Macfarlanes acted for major investor in AXA\'s European Life Sciences fund. Funds + RE crossover strength.' }
+  ];
+
+  /* ===== BUSINESS FINANCE — fund flows / sponsor earnings / debt ===== */
+
+  // Last 24 hours
+  const FINANCE_24H = [
+    {
+      stream: 'Sponsor earnings', firm: 'Blackstone Q1 2026',
+      headline: 'AUM hits record $1.30 trillion (+12% YoY); BREIT raises $1.2bn (Q1, +44% YoY)',
+      detail: 'Real Estate AUM $315.3bn (-1% q/q on harvesting). Core+ funds appreciated 0.8% in Q1 driven by BREIT; opportunistic BREP funds modestly down. $7.0bn deployed in Q1 incl. US hyperscale data centre and Hawaii REIT take-private. $69bn quarterly inflows.',
+      take: 'Two read-throughs: **(1) the data-centre conviction is now firm-wide policy, not one fund**; (2) BREIT\'s $1.2bn quarterly raise validates the wealth-channel thesis — sponsor clients with US wealth distribution should be re-modelling fund structure.',
+      when: '23 Apr 2026'
+    },
+    {
+      stream: 'Sponsor earnings', firm: 'KKR Real Estate Finance Trust (KREF)',
+      headline: 'Distributable loss of ($0.06)/share; dividend cut from $0.25 to $0.10',
+      detail: 'KREF stock -22% pre-market on results. Strategic shift: reducing legacy office exposure from 21% to <10%, eliminating watch-list assets to ~zero. Originated £-equivalent senior loan secured by 34-property UK industrial portfolio ($184m). Received $415m in repayments incl. $312m office.',
+      take: 'KKR\'s listed real-estate credit vehicle is **publicly recycling out of office and into UK industrial**. Office distress is becoming visible in the public credit markets. **Watch for distressed-office mandates in H2.**',
+      when: '23 Apr 2026'
+    },
+    {
+      stream: 'Debt markets', firm: 'European leveraged finance',
+      headline: 'Private credit margins below 5% as banks return; €86bn maturity wall by 2028',
+      detail: 'European direct lenders did €41.4bn across 160 transactions in 2025. €18.3bn of refinancing/dividend recaps in 2025 deferred but did not resolve maturity wall. Private credit pricing tightening as traditional banks re-enter syndicated loan market. Cov-lite structures spreading.',
+      take: 'For sponsor clients with 2021-vintage debt, **the next 18 months are the optimal refi window**. Cross-sell trigger: every PE-RE pitch should mention financing-cost certainty as a deal advantage.',
+      when: 'This week'
+    }
+  ];
+
+  // This week
+  const FINANCE_WEEK = [
+    {
+      stream: 'Sponsor earnings', firm: 'Blackstone Q1 2026 — full read',
+      headline: 'AUM $1.30T (+12% YoY); distributable earnings +25% to $1.8bn; FRE +23%',
+      detail: 'Capital inflows $69bn in Q1 (~$250bn LTM). Real Estate Core+ +0.8% Q1, +2.6% LTM. BREP opportunistic -0.9% Q1, -1.6% LTM (life sciences office, India public weighing). BREIT raised $1.2bn (highest in three years). RE base management fees declining moderately on harvest activity.',
+      take: '**Real-estate at Blackstone is in transition: harvesting old funds, fundraising new ones, and tilting hard into data centres and AI infrastructure.** Their playbook for 2026: deploy through Core+ in BREIT, harvest through BREP, raise next-vintage opportunistic. Worth knowing precisely if pitching their LPs.',
+      when: '23 Apr 2026'
+    },
+    {
+      stream: 'Fund flows', firm: 'Preqin Global Real Estate 2026',
+      headline: 'Real estate fundraising rebounded in 2025; debt and opportunistic strategies leading',
+      detail: 'Aggregate capital raised by three largest opportunistic funds = >62% of whole-strategy fund total. Mega-fund concentration at decade peak. Living-sector deal share at highest since 2015. Student housing transaction value +100% YoY in Q1-Q3 2025. Niche sector deal share hit 19% of total Europe deal value.',
+      take: '**Capital concentration at the top is the single most important fundraising fact for 2026.** For Macfarlanes sponsor clients raising new funds: differentiation has to be on theme (OPRE), structure (programmatic JVs), or operator partnership — not generic strategy.',
+      when: 'Mid-Dec 2025 print'
+    },
+    {
+      stream: 'Debt markets', firm: 'European CMBS issuance',
+      headline: '€8.7bn across 17 deals in 2025 — highest issuance volume in over a decade',
+      detail: 'Up from €2.2bn / 5 transactions in 2024. December 2025 deal: DBMS 2025-1 DAC, £828m UK logistics from Blackstone\'s Warehouse REIT take-private. August 2025: £1.54bn UK Haven holiday parks CMBS — largest UK since GFC. Weighted average note margins tightening: 12-month WANM = 2.04% GBP / 1.93% EUR (vs 2.72% / 2.38% prior).',
+      take: '**CMBS is back as a core financing route for UK real estate.** For Macfarlanes\' debt-fund clients, this is a structural shift — banks ceding share to private credit AND securitisation simultaneously. **There\'s a structuring/advisory opportunity for sponsors considering CMBS exit on portfolio companies.**',
+      when: 'Q4 2025 / Q1 2026'
+    },
+    {
+      stream: 'Sponsor earnings', firm: 'KKR Real Estate Finance Trust',
+      headline: 'Strategic repositioning — exiting office, rotating into UK / industrial',
+      detail: 'Office exposure down from 21% → target <10%. Watch-list assets being eliminated. £184m senior loan against 34-property UK industrial portfolio originated Q1. $415m in loan repayments received including $312m office. Book value $11.87/share.',
+      take: '**KREF is the canary on US office distress.** For UK clients: confirms the bifurcation thesis (prime trophy still works, secondary still discounted). For our credit-fund clients: KREF\'s pivot is the playbook — exit office, rotate into UK industrial.',
+      when: '23 Apr 2026'
+    },
+    {
+      stream: 'Fund flows', firm: 'Global private capital dry powder',
+      headline: 'PE dry powder at $3.7tn (early 2026) — but real estate-specific dry powder is the constraint',
+      detail: 'Per Preqin: total private-capital dry powder $3.9tn including all strategies. Total PE alone $3.7tn. Bain notes ~32,000 PE-backed portfolio companies globally with ~50% held >5 years (avg hold ~7yr). Distribution / liquidity remains LP\'s top concern.',
+      take: '**Capital is there; the binding constraint is liquidity to LPs.** Continuation vehicles, NAV lending, secondaries are now mainstream tools. **Cross-sell: every Macfarlanes RE-fund client should be evaluated for CV potential in the next 12 months.**',
+      when: 'Q1 2026'
+    },
+    {
+      stream: 'Debt markets', firm: 'European real estate debt margins',
+      headline: 'Senior loan margins compressed -23bp over six months as competition returns',
+      detail: 'Per DWS European RE Debt Market 2025 report: tighter spreads across European sectors. Banks scaling back direct lending led to debt-fund market-share gains, but banks now competing back. Whole-loan strategies favoured. Property values "at cyclical low" per multiple sponsors. Development financing demand up materially.',
+      take: '**Debt is now accretive to leveraged returns again across most sectors and geographies.** A signal to sponsor clients: refinancing windows that close in H2 may not reopen on the same terms. Capital structure optimisation is on the agenda for 2026 — Macfarlanes\' integrated finance + RE + tax model is the right pitch.',
+      when: 'Q1 2026'
+    }
+  ];
+
+  /* ===== COMPETITOR INTELLIGENCE ===== */
+
+  // Last 24 hours
+  const COMPETITOR_24H = [
+    { firm: 'Latham & Watkins', when: '21h ago', sector: 'PE / Financial advisory',
+      deal: 'Counsel to Bridgepoint on exclusive Interpath majority-stake negotiations',
+      take: 'Bridgepoint adding to its services platform. **Expect follow-ons that cross into our PE / RE crossover work.**' },
+    { firm: 'Kirkland & Ellis', when: 'Yesterday', sector: 'Take-private',
+      deal: 'Reported on Blackstone-led £1.4bn Senior plc consortium take-private (with Tinicum)',
+      take: 'Cross-sector take-private playbook. **The same template will be deployed in healthcare-RE and logistics this year.**' },
+    { firm: 'Goodwin Procter', when: 'Yesterday', sector: 'Funds + RE',
+      deal: 'Multiple EU RE fund-formation mandates announced',
+      take: 'Direct overlap with our positioning. **Pitch on integrated UK depth — our spine is funds + RE + tax under one roof.**' },
+    { firm: 'Freshfields', when: '2 days ago', sector: 'FTSE M&A',
+      deal: 'Reported counsel on multiple FTSE 350 cross-border M&A processes',
+      take: 'Victoria Hills\' former firm. **Defensive play: ensure her former PERE clients see Macfarlanes\' breadth this quarter.**' }
+  ];
+
+  // Detailed full competitor cards
+  const COMPETITOR_FULL = [
+    { firm:'Latham & Watkins', when:'2026-04-22', sector:'Mid-market PE',
+      deal:'Bridgepoint exclusive negotiations to acquire majority stake in Interpath',
+      lead:'Farah O\'Brien (London PE)',
+      take:'Latham\'s London PE team is winning mid-market mandates that overlap with our private-funds remit. **We should be on the second-look list for Bridgepoint follow-ons.**' },
+    { firm:'Kirkland & Ellis', when:'2026-04-15', sector:'Take-private',
+      deal:'Reported counsel to Blackstone consortium on £1.4bn Senior plc aerospace take-private',
+      lead:'London PE bench',
+      take:'Cross-sector take-private muscle. The structuring template (consortium + take-private) is the same as Warehouse REIT and Assura. **Pattern-recognition counts when pitching healthcare-RE clients.**' },
+    { firm:'Simpson Thacher', when:'2026-03-25', sector:'Healthcare RE',
+      deal:'Closed counsel role on KKR / Stonepeak Assura £1.7bn take-private',
+      lead:'London PE',
+      take:'They closed the deal we lost in the wider competitive frame. **The Welltower / Barchester divestment process is the next chance to re-enter UK healthcare-RE at the front of the queue.**' },
+    { firm:'Freshfields', when:'2026-04-10', sector:'Cross-sector M&A',
+      deal:'Reported on multiple FTSE 350 M&A processes',
+      lead:'London corporate',
+      take:'Victoria Hills\' former firm. **They have institutional relationships with her former PERE clients. The defensive play is making sure those clients see Macfarlanes\' breadth (funds + RE + tax) not just Victoria.**' },
+    { firm:'Goodwin Procter', when:'2026-04-08', sector:'Funds + RE',
+      deal:'Multiple European RE fund formations',
+      lead:'London funds',
+      take:'Most direct overlap with Macfarlanes\' positioning. **They go head-to-head on RE funds with US LP angles. Differentiate on UK depth, integrated tax, and the Macfarlanes OPRE thesis.**' },
+    { firm:'Linklaters', when:'2026-04-04', sector:'Listed REITs',
+      deal:'Listed REIT advisory work continues across multiple targets',
+      lead:'London corporate',
+      take:'They have the listed-side relationships. **Macfarlanes wins on private-side, sponsor-led platforms — that\'s the differentiation. Structuring / OPRE / JVs is our spine.**' },
+    { firm:'Travers Smith', when:'2026-03-30', sector:'Mid-market PE platforms',
+      deal:'Mid-market PE platform deals across UK services / consumer',
+      lead:'London PE',
+      take:'Closest peer on mid-market PE. **Their platform-deal practice is exactly the OPRE space. Macfarlanes\' published OPRE thesis is a real differentiator.**' },
+    { firm:'Clifford Chance', when:'2026-03-25', sector:'Cross-border RE',
+      deal:'Cross-border RE mandates with EU / Middle East angles',
+      lead:'London RE',
+      take:'Magic Circle scale advantage on multi-jurisdictional. **We win on UK depth, partner attention, and the integrated funds + RE + tax model.**' },
+    { firm:'A&O Shearman', when:'2026-03-20', sector:'RE finance',
+      deal:'Bank-side RE financing on multiple sponsor refinancings',
+      lead:'London finance',
+      take:'Strong on bank-side. **Less competitive on sponsor-side equity work — that\'s our lane.**' },
+    { firm:'Slaughter and May', when:'2026-03-18', sector:'Listed RE M&A',
+      deal:'Listed RE M&A target advisory',
+      lead:'London corporate',
+      take:'Selective Magic Circle player on RE. **We compete on private-side and platforms; they win on the largest listed targets.**' },
+    { firm:'White & Case', when:'2026-03-15', sector:'Cross-border RE',
+      deal:'Cross-border PERE work, including some US LP / EU asset structures',
+      lead:'London PE',
+      take:'US-led practice with EU footprint. **Compete on UK / EU specialism — they pitch the global shop, we pitch depth.**' },
+    { firm:'Hogan Lovells', when:'2026-03-12', sector:'Healthcare RE',
+      deal:'Healthcare-RE advisory continues across US / UK platforms',
+      lead:'London RE',
+      take:'Active in healthcare-RE. **Watch them on Welltower divestment processes — likely incumbent for sub-scale buyers we should compete with.**' },
+    { firm:'Ashurst', when:'2026-03-05', sector:'Logistics platforms',
+      deal:'Logistics platform mandates with EU asset focus',
+      lead:'London RE',
+      take:'Active on logistics platforms. **Aermont / Sunrise differentiates us — programmatic JVs are our specialism.**' }
+  ];
+
+  const SCOREBOARD = [
+    { firm:'Macfarlanes', count:8, last:'L&G Stanley Studios (27 Apr)', notes:'Hughes / Hills active', mac:true },
+    { firm:'Kirkland & Ellis', count:12, last:'Senior plc consortium', notes:'Take-private template' },
+    { firm:'Latham & Watkins', count:11, last:'Bridgepoint / Interpath', notes:'Mid-market PE muscle' },
+    { firm:'Freshfields', count:9, last:'FTSE M&A flow', notes:'V. Hills former firm — watch' },
+    { firm:'Linklaters', count:8, last:'Listed REIT advisory', notes:'Listed-side dominant' },
+    { firm:'Simpson Thacher', count:7, last:'KKR / Assura', notes:'KKR\'s default counsel' },
+    { firm:'Clifford Chance', count:7, last:'Cross-border RE', notes:'Magic Circle scale' },
+    { firm:'Goodwin Procter', count:6, last:'Funds + RE formations', notes:'Closest peer' },
+    { firm:'A&O Shearman', count:6, last:'Bank-side RE finance', notes:'Bank-side dominant' },
+    { firm:'Travers Smith', count:5, last:'Mid-market PE', notes:'Closest mid-market peer' },
+    { firm:'Slaughter and May', count:5, last:'Listed RE M&A', notes:'Selective on RE' },
+    { firm:'Ashurst', count:5, last:'Logistics platforms', notes:'Active on logistics' },
+    { firm:'White & Case', count:4, last:'Cross-border PERE', notes:'US-led; EU footprint' },
+    { firm:'CMS', count:4, last:'Mid-market RE', notes:'Volume player' },
+    { firm:'Hogan Lovells', count:4, last:'Healthcare RE', notes:'Watch on Welltower divestments' }
+  ];
+
+  /* ===== DAILY BRIEFING TOP-10 ===== */
+  const BRIEFING_BASE = [
+    { headline:'BoE rate decision today at 12:00 — markets split between hold and hike, not cut',
+      why:'MPC voted unanimously to hold at 3.75% in March after the Iran war pushed CPI projections back to 3-3.5%. Today is the first read on whether the Committee believes inflation is sticky enough to delay cuts. Real-estate financing costs hinge on this.',
+      sources:[{name:'Bank of England', url:'https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/monetary-policy-summary-and-minutes'}],
+      tags:['MARKET','TODAY'], date:'Today' },
+    { headline:'Blackstone Q1 2026 — record $1.30tn AUM; BREIT raises $1.2bn (+44% YoY); RE Core+ +0.8%',
+      why:'Real-estate AUM $315bn (slight harvesting drag). $7bn deployed in Q1 incl. US hyperscale data centre and Hawaii REIT take-private. Data-centre conviction is now firm-wide. BREP opportunistic funds modestly down on life-sciences office and India.',
+      sources:[{name:'Commercial Observer', url:'https://commercialobserver.com/2026/04/blackstone-first-quarter-2026-earnings/'}],
+      tags:['SPONSOR','EARNINGS'], date:'23 Apr' },
+    { headline:'L&G Student Living acquires Stanley Studios for £43m — Andrew Hughes lead',
+      why:'Closed 27 April. Andrew Hughes\' team (with Senior Counsel Laurie Fletcher and SAs Rebecca Rose / Andrew Wheelhouse) advised on a 245-room PBSA in a prime UK university city. Reinforces sustained institutional appetite for premium student housing.',
+      sources:[{name:'Macfarlanes press release', url:'https://www.macfarlanes.com/insights/102mqwt/macfarlanes-advises-lg-on-43m-acquisition-of-purpose-built-student-accommodatio/'}],
+      tags:['BOSS','WIN','PBSA'], date:'27 Apr' },
+    { headline:'KKR Real Estate Finance dividend cut from $0.25 → $0.10; office exposure cut from 21% → <10%',
+      why:'KREF Q1 2026 distributable loss of ($0.06)/share. Stock -22% pre-market. Strategic repositioning out of office into UK industrial — £184m senior loan on 34-property UK industrial portfolio originated Q1. Public canary on US office distress.',
+      sources:[{name:'Investing.com', url:'https://www.investing.com/news/company-news/kkr-real-estate-q1-2026-slides-strategic-shift-drives-book-value-decline-93CH-4633226'}],
+      tags:['DEBT','SPONSOR','OPPORTUNITY'], date:'23 Apr' },
+    { headline:'Welltower / Barchester / HC-One CMA Phase 1 — derogation letters issued 27 March',
+      why:'CMA continues active investigation into £6.4bn UK senior-care consolidation. Watch for SLC findings and divestment remedies — would create off-market acquisition opportunities for sub-scale healthcare-RE buyers.',
+      sources:[{name:'GOV.UK CMA case page', url:'https://www.gov.uk/cma-cases/welltower-slash-multiple-care-homes-merger-inquiries'}],
+      tags:['LEGAL','HEALTHCARE','OPPORTUNITY'], date:'Live' },
+    { headline:'European CMBS issuance hits €8.7bn across 17 deals in 2025 — highest in over a decade',
+      why:'Up from €2.2bn / 5 deals in 2024. Latest: £828m UK logistics CMBS (Blackstone-originated, Dec 2025). Margins tightened to 2.04% (GBP) / 1.93% (EUR). CMBS is back as a real exit / refinancing route for UK real-estate sponsors.',
+      sources:[{name:'CoStar', url:'https://www.costar.com/article/555894620/uk-and-europe-cmbs-issuance-soared-in-2025-with-rise-set-to-continue'}],
+      tags:['DEBT','MARKET'], date:'Q1 2026' },
+    { headline:'Brookfield closes Fidere acquisition from Blackstone — €1.2bn, first €1bn+ EU RE deal since Iran war',
+      why:'Largest Spanish multifamily trade since the GFC. Blackstone exits 5,000 Madrid units; Brookfield enters at par. Crucial signal: bid-ask spreads have narrowed enough for big-ticket deals to clear.',
+      sources:[{name:'Reuters', url:'https://www.reuters.com/'}],
+      tags:['LIVING','CROSS-BORDER'], date:'31 Mar' },
+    { headline:'Tax: 6 April changes — APR/BPR cap, BADR rises 14% → 18%, dividend rates +2%',
+      why:'Came into force 6 April. Family-office and entrepreneur clients with property holdings need refreshed tax modelling. BADR rate rise increases urgency on succession planning.',
+      sources:[{name:'Macfarlanes Spring Statement', url:'https://www.macfarlanes.com/insights/102mlsj/the-spring-statement-2026-no-tax-rises-or-policy-changes-for-private-clients/'}],
+      tags:['LEGAL','TAX','CROSS-SELL'], date:'6 Apr' },
+    { headline:'Single-family housing thesis: UK going opposite direction to US — institutional window opening',
+      why:'Macfarlanes\' own SFH note (March): UK government\'s tenant-protection emphasis favours professional operators, while US is restricting institutional SFR. Direct opportunity for the desk to lead this work.',
+      sources:[{name:'Macfarlanes SFH note', url:'https://www.macfarlanes.com/insights/102mmvq/single-family-housing-momentum-builds-in-the-uk-living-sector/'}],
+      tags:['LIVING','OPPORTUNITY'], date:'17 Mar' },
+    { headline:'Q1 UK living sector hits £2.5bn investment (CBRE) — biggest single allocation in UK RE',
+      why:'CBRE preliminary data. Cross-checks: Apollo entered UK BTR; Brookfield acquired Fidere; KKR exited US PBSA. Institutional flows are structural, not cyclical.',
+      sources:[{name:'CBRE press', url:'https://www.cbre.co.uk/press-releases'}],
+      tags:['LIVING','MARKET'], date:'Q1 2026' }
+  ];
+
+  /* ===== WEEKLY DEALS HIGHLIGHTS ===== */
+  const WEEKLY_DEALS = [
+    { headline:'L&G acquires Stanley Studios for £43m — Macfarlanes (A. Hughes) lead',
+      date:'27 April 2026', tag:'Macfarlanes win',
+      body:'245-room PBSA in a prime UK university city. Andrew Hughes\' team led, supported by Senior Counsel Laurie Fletcher and Senior Associates Rebecca Rose & Andrew Wheelhouse. Reinforces sustained institutional appetite for premium student housing in supply-constrained locations.',
+      take:'Strong PBSA precedent for the next student-housing pitch. The desk should be the obvious choice for L&G follow-ons.' },
+    { headline:'Hostel chain completes £761m refinancing for UK / EU expansion',
+      date:'14 April 2026', tag:'Hospitality',
+      body:'Major hostel-chain refinancing announced (per Bisnow London). Operational hospitality at scale — exactly the OPRE territory the desk has staked out under Andrew Hughes\' published thesis.',
+      take:'Watch for follow-on refi mandates. The hostel-chain operator profile is similar to the Pandox / Dalata structuring work.' },
+    { headline:'Coliving investors signal increased exposure (Investec)',
+      date:'15 April 2026', tag:'Living sector',
+      body:'Investec finds coliving investors looking to increase exposure to the asset class. Macfarlanes recently published a co-living regulatory note — the firm is positioned as a thought-leader.',
+      take:'Lead with the published note in any coliving pitch. Sits at the regulatory-complex / OPRE intersection.' },
+    { headline:'CBRE: UK living sector hits £2.5bn Q1 2026 investment',
+      date:'Q1 2026 print', tag:'Market data',
+      body:'Living is now the largest single allocation in UK real estate per CBRE. Cross-checks: Apollo entered UK BTR; Brookfield acquired Fidere; KKR exited US PBSA. Institutional flows are structural.',
+      take:'A clean number for any pitch deck on the living sector.' },
+    { headline:'Welltower CMA derogations issued 27 March (Phase 1)',
+      date:'27 March 2026', tag:'CMA / opportunity',
+      body:'CMA Phase 1 investigation continues into £6.4bn UK senior-care consolidation. Latest derogation lets Welltower continue with five closed care-home disposals already underway. Phase 2 referral and divestment remedies remain real possibilities.',
+      take:'When SLC findings drop, divestment processes will move fast. Sub-scale buyers (Octopus, Target, Civitas) need transaction counsel within hours. **Standout commercial opportunity in UK healthcare-RE for 2026.**' }
+  ];
+
+  const SECTORS = [
+    { name:'Logistics', heat:'Hot', note:'Aermont / Sunrise €1bn JV; Hillwood / CBRE IM $4.5bn portfolio sale; urban last-mile premium. Yields ~4.7% NIY.' },
+    { name:'Healthcare RE', heat:'Hot', note:'Welltower £6.4bn UK push; KKR / Assura £1.7bn. CMA review may unlock divestment buys.' },
+    { name:'Student Housing', heat:'Steady', note:'L&G Stanley Studios £43m; KKR / BREIT US PBSA $1.64bn. Supply-constrained university cities outperform.' },
+    { name:'BTR / SFH', heat:'Hot', note:'Apollo entered UK BTR; Brookfield / Fidere €1.2bn. UK SFH thesis emerging as US restricts institutional SFR.' },
+    { name:'Hotels', heat:'Selective', note:'Pandox / Dalata €1.7bn. PIF / Rocco Forte. Operational structures (RIDEA, MA) winning.' },
+    { name:'Data Centres', heat:'Very hot', note:'Athens hyperscale JV. Sector requires deep expertise — competition for sites, not yields, is the 2026 story.' },
+    { name:'Life Sciences', heat:'Steady', note:'Oxford North £700m; AXA IM €1.9bn fund. Long-term structural trend; pace cooled vs 2024 peak.' },
+    { name:'Offices', heat:'Bifurcating', note:'Hayfin / 70 St Mary Axe trophy buy. Prime in prime locations recovering; secondary still discounted. KREF\'s pivot confirms thesis.' },
+    { name:'Self-Storage', heat:'Steady', note:'Listed players posting revenue growth Q1 2026; consolidation potential remains.' }
+  ];
+
+  const SPONSORS_VIEW = [
+    { name:'Blackstone', stance:'Net seller in housing; net buyer in logistics / DC / infra-adjacent. Q1 2026: $1.30tn AUM, BREIT +$1.2bn raised. Hawaii REIT take-private. Fidere exit.' },
+    { name:'Brookfield', stance:'Aggressive buyer in European living. €1.2bn Fidere acquisition reads as conviction call on EU multifamily.' },
+    { name:'KKR', stance:'Healthcare RE specialist (Assura, Stonepeak JV). KREF dividend cut and pivot signals: out of US office, into UK industrial.' },
+    { name:'Welltower', stance:'Single-largest 2026 PERE story. £6.4bn UK senior-care + RIDEA structures. CMA risk now binding — divestment opportunities likely.' },
+    { name:'Apollo', stance:'New UK BTR entrant. Watch for further living-sector M&A and platform plays.' },
+    { name:'Aermont', stance:'Logistics conviction via programmatic JV (Sunrise). €1bn portfolio target. Macfarlanes client.' },
+    { name:'Hayfin', stance:'Credit fund taking direct equity (70 St Mary Axe). Trend: credit funds becoming hybrid investors. Macfarlanes client.' },
+    { name:'Pandox', stance:'Largest hotel REIT in Europe post-Dalata. Macfarlanes client. Watch for further EU hotel consolidation.' }
+  ];
+
+  const RADAR = [
+    { what:'Welltower divestment remedies', why:'CMA Phase 1 likely to require sale of overlapping homes — sub-scale buyers will need M&A counsel fast. Healthcare-RE clients should be on warning.' },
+    { what:'Pension Mansion House £50bn unlock', why:'Trustee buy-in is the gating issue. Funds work for DC schemes investing in private RE will scale 2026-2030. Position now.' },
+    { what:'Continuation vehicles for RE funds', why:'CVs now mainstream for distributions. Real-estate secondaries (e.g. Cedar/Ares) is the highest-margin niche. Cross-sell into the secondaries practice.' },
+    { what:'PISCES private market routes', why:'Sponsors with hold-period mismatches now have a partial-liquidity option short of IPO. New mandate type emerging.' },
+    { what:'CMBS exit windows', why:'European CMBS at decade-high issuance. Tightening spreads = real refi opportunity. Sponsor clients with 2021-vintage debt need to be modelling now.' },
+    { what:'Data-centre / energy-infra crossover', why:'Pricing as infra not RE has fund-formation implications. Funds + RE + tax integrated team is exactly what this work needs.' }
+  ];
+
+  const PARTNER_MODE = [
+    { headline:'Pre-empt the Welltower divestment remedies',
+      body:'CMA Phase 1 derogations on 27 March. Phase 2 highly possible. When SLC findings drop, divestment processes will move fast. Email healthcare-RE clients now (Octopus Healthcare, Target, Civitas Investment) flagging that you\'ve been tracking the case and have capacity. The pitch is: "we know the structure, we know the assets, we know the timeline." That\'s a partner-led move.' },
+    { headline:'Convert the Pandox win into a sector franchise',
+      body:'Victoria\'s Pandox / Dalata mandate is one of the largest hotel deals in Europe in 2025. Run a thoughtful outbound on Pandox\'s competitor set (Covivio, NH Hotels, Whitbread, IHG-OpCo opportunities) using the Pandox precedent as evidence of structuring capability. This is how you turn a deal into a desk.' },
+    { headline:'Position for the credit-to-equity wave',
+      body:'Welltower\'s HC-One conversion (£660m loan with embedded warrants → 100% equity) is the prototype. Hayfin\'s 70 St Mary Axe acquisition is the same pattern at smaller scale. KREF rotating out of office into UK industrial is the listed-credit version. There is a case for a published thought-piece on "when credit becomes control" for the firm\'s credit-fund clients. This is the kind of original commercial framing that gets associates noticed.' },
+    { headline:'Mansion House: get the funds team into your pitches',
+      body:'£50bn DC pension unlock is multi-year. Real estate is one of three priority assets. The competitive edge is integrated funds + RE + tax — Macfarlanes\' structural advantage versus Magic Circle silos. Make sure every PE-RE pitch in 2026 has a private-funds partner on the cover. Make yourself the connector.' },
+    { headline:'Don\'t let Freshfields recapture Victoria\'s book',
+      body:'Victoria Hills joined from Freshfields in October 2024. Her former clients have an institutional relationship to defend (their side) and to offence (yours). Spend a Friday afternoon mapping Freshfields\' last-three-years PERE deal sheet. Identify the five clients most likely to follow her. Make sure she sees that map. That\'s a partner-track gesture.' },
+    { headline:'CMBS as a refi pitch',
+      body:'European CMBS issuance has hit decade-highs. Margins are tightening. Sponsor clients with 2021-vintage debt have an open window. Build a one-page CMBS-vs-bank-vs-private-credit comparison and send it to every PE-RE sponsor on your call list. The combined "CMBS expertise + Macfarlanes integrated funds + tax" message wins this work.' }
+  ];
+
+  const TALKING_POINTS = [
+    { quote:'Brookfield buying Fidere from Blackstone for €1.2bn is the strongest signal yet that big-ticket European RE M&A has unfrozen — and that bid-ask spreads have meaningfully narrowed.',
+      context:'For: corridor talk, sponsor calls. Source: Reuters / Bloomberg, 31 Mar 2026.' },
+    { quote:'KKR Real Estate Finance Trust cutting its dividend in half and pivoting from office into UK industrial is the listed-market canary on US office distress.',
+      context:'For: credit-fund client calls. Source: KREF Q1 2026.' },
+    { quote:'Blackstone\'s $1.30 trillion AUM, with data centres now firm-wide policy, tells you exactly where the capital is going for the rest of this cycle.',
+      context:'For: panels, internal updates. Source: BX Q1 2026 earnings.' },
+    { quote:'European CMBS issuance hit €8.7bn in 2025 — the highest in over a decade. CMBS is back as a real refi route for UK real estate.',
+      context:'For: debt-fund clients. Source: CoStar / Scope Ratings, Jan 2026.' },
+    { quote:'The Welltower CMA Phase 1 review is the single most under-priced commercial opportunity in UK healthcare-RE — divestment remedies could create off-market processes for sub-scale acquirers.',
+      context:'For: partner kitchen, healthcare clients. Source: GOV.UK CMA case page.' },
+    { quote:'Operational real estate continues to be the most defensible thesis in a flat-capital-growth environment — every asset becomes a business, and that\'s where the value capture sits.',
+      context:'For: panels, pitches. Echoes Andrew Hughes\' published view in the Macfarlanes OPRE report.' },
+    { quote:'Programmatic JVs like Aermont / Sunrise are increasingly the structure of choice for logistics deployment — they marry sponsor capital with developer execution and avoid the auction premium.',
+      context:'For: client calls. Aligns to Victoria Hills\' deal sheet.' },
+    { quote:'The single-family-housing thesis is gaining momentum precisely because the UK government is taking the opposite approach to the US — institutional investors are moving from US SFR to UK SFH while they can.',
+      context:'For: residential clients. Aligns to Macfarlanes\' published SFH note (March 2026).' },
+    { quote:'Real estate fundraising rebounded in 2025 led by debt and opportunistic strategies — but mega-fund concentration is at a decade peak, and that changes how sub-scale managers should pitch their next vintage.',
+      context:'For: funds-side conversations. Source: Preqin Global RE Report 2026.' },
+    { quote:'Continuation vehicles aren\'t a fundraising story any more — they\'re a portfolio-management story. Around 20% of distributions in 2026 are expected from CV transactions.',
+      context:'For: funds and PE clients. Source: Cambridge Associates.' },
+    { quote:'Welltower converting its £660m HC-One loan into equity ownership is a textbook case of credit-to-equity conversion — and a structure private credit funds across the City should be modelling.',
+      context:'For: credit-fund clients. Source: Welltower Q3 2025 earnings.' },
+    { quote:'European private-credit margins below 5% with banks competing back means the next 18 months are the optimal refi window for sponsor clients with 2021-vintage debt.',
+      context:'For: refinancing pitches. Source: White & Case European Leveraged Finance 2026.' }
+  ];
+
+  const FUTURE_PARTNER_NOTES = [
+    { headline:'Today\'s BoE decision is your client-call ice-breaker — own it.',
+      body:'Whatever the MPC does at noon, every property-fund client on your call list will be talking about it. Have a position by 11:55. "CPI persistence remains the binding constraint" is a partner sentence. "I think they\'ll cut" is an associate sentence. The difference is whether you sound like you understand what monetary policy means for real-estate financing — not whether you\'re right.' },
+    { headline:'The Welltower CMA case is the most under-priced commercial opportunity in the market.',
+      body:'Phase 2 referral and divestment remedies are a real possibility. Sub-scale buyers (Octopus, Target, Civitas) will need transaction counsel within hours of the CMA announcing remedies. Reaching out now — before the announcement — is exactly the kind of pre-positioning that distinguishes future partners from senior associates.' },
+    { headline:'Operational real estate is your differentiator, not your specialism.',
+      body:'Andrew Hughes co-authored the firm\'s OPRE thesis. Victoria Hills built her career on hotels. The desk\'s positioning is "every asset is a business." Make sure every memo, pitch and panel question reflects that frame. Generic real-estate commentary is what every other firm produces. Operational framing is what wins this market.' },
+    { headline:'CMBS is the structural opportunity nobody on the desk is pitching yet.',
+      body:'European CMBS issuance has hit decade-highs. Margins tightening. Banks ceding share to private credit AND securitisation simultaneously. Build a one-page comparison of CMBS vs bank vs private credit for sponsor clients with 2021-vintage debt. Send it before someone else does.' }
+  ];
+
+  /* ============================================================
+     UTILITIES
+     ============================================================ */
+
+  function el(tag, attrs, children) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      if (k === 'class') e.className = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k.indexOf('on') === 0) e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    if (children) (Array.isArray(children) ? children : [children]).forEach(function (c) {
+      if (c == null) return;
+      e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+  function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function stripTags(s) { return String(s || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
+  function formatBold(text) {
+    // Convert **bold** to <strong>
+    return escapeHTML(text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
+  function fmtDate(d, opts) {
+    opts = opts || { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+    return new Intl.DateTimeFormat('en-GB', opts).format(d);
+  }
+  function shortDate(iso) {
+    const d = new Date(iso); return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' });
+  }
+  function relativeDate(iso) {
+    const d = new Date(iso), now = new Date(), diff = (now - d) / 86400000;
+    if (diff < 1) return 'today';
+    if (diff < 2) return 'yesterday';
+    if (diff < 7) return Math.floor(diff) + 'd ago';
+    if (diff < 31) return Math.floor(diff/7) + 'w ago';
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' });
+  }
+  function fetchTimeout(url, ms) {
+    return Promise.race([
+      fetch(url, { credentials: 'omit' }),
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, ms || FETCH_TIMEOUT_MS); })
+    ]);
+  }
+  async function fetchWithProxyChain(targetUrl) {
+    for (let i = 0; i < PROXIES.length; i++) {
+      try {
+        const proxied = PROXIES[i].build(targetUrl);
+        const res = await fetchTimeout(proxied);
+        if (res && res.ok) {
+          const text = await res.text();
+          if (text && text.length > 20) return { text: text, proxy: PROXIES[i].name };
+        }
+      } catch (e) { /* try next proxy */ }
+    }
+    return null;
+  }
+  function copyToClipboard(text) {
+    if (navigator.clipboard) return navigator.clipboard.writeText(text);
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg || 'Copied';
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+  function svgIcon(name) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.5');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    const path = document.createElementNS(ns, 'path');
+    if (name === 'bookmark') path.setAttribute('d', 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z');
+    if (name === 'trash') path.setAttribute('d', 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  /* ============================================================
+     PARSERS
+     ============================================================ */
+
+  function parseGov(jsonText, feed) {
+    try {
+      const data = JSON.parse(jsonText);
+      return (data.results || []).slice(0, 12).map(function (r) {
+        return {
+          title: r.title,
+          url: 'https://www.gov.uk' + r.link,
+          date: r.public_timestamp,
+          source: (r.organisations && r.organisations[0] && r.organisations[0].title) || feed.label,
+          snippet: r.description || r.indexable_content || '',
+          tag: feed.tag
+        };
+      });
+    } catch (e) { return []; }
+  }
+  function parseRSS(xmlText, feed) {
+    try {
+      const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      const out = [];
+      doc.querySelectorAll('item').forEach(function (item) {
+        if (out.length >= 12) return;
+        const title = (item.querySelector('title') || {}).textContent || '';
+        const link = (item.querySelector('link') || {}).textContent || '';
+        const pub = (item.querySelector('pubDate') || {}).textContent || '';
+        const desc = (item.querySelector('description') || {}).textContent || '';
+        if (title && link) out.push({ title: title.trim(), url: link.trim(), date: pub, source: feed.label, snippet: stripTags(desc).slice(0, 220), tag: feed.tag });
+      });
+      return out;
+    } catch (e) { return []; }
+  }
+  function parseAtom(xmlText, feed) {
+    try {
+      const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      const out = [];
+      doc.querySelectorAll('entry').forEach(function (entry) {
+        if (out.length >= 12) return;
+        const title = (entry.querySelector('title') || {}).textContent || '';
+        const linkEl = entry.querySelector('link');
+        const link = linkEl ? linkEl.getAttribute('href') : '';
+        const pub = ((entry.querySelector('updated') || entry.querySelector('published')) || {}).textContent || '';
+        const summary = ((entry.querySelector('summary') || entry.querySelector('content')) || {}).textContent || '';
+        if (title && link) out.push({ title: title.trim(), url: link.trim(), date: pub, source: feed.label, snippet: stripTags(summary).slice(0, 220), tag: feed.tag });
+      });
+      return out;
+    } catch (e) { return []; }
+  }
+  function parseStooqCSV(csvText) {
+    // Format: Symbol,Date,Time,Open,High,Low,Close,Volume,Name
+    try {
+      const lines = csvText.trim().split(/\r?\n/);
+      if (lines.length < 2) return null;
+      const cols = lines[1].split(',');
+      if (cols.length < 8 || cols[6] === 'N/D') return null;
+      const close = parseFloat(cols[6]);
+      const open = parseFloat(cols[3]);
+      if (!isFinite(close) || !isFinite(open)) return null;
+      return { close: close, open: open, symbol: cols[0], date: cols[1] };
+    } catch (e) { return null; }
+  }
+
+  function isRelevant(item) {
+    const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
+    const keywords = ['real estate','property','logistics','industrial','warehouse','data centre','data center',
+      'hotel','hospitality','student','pbsa','btr','build to rent','living sector','multifamily','private equity',
+      'kkr','blackstone','brookfield','apollo','welltower','pandox','aermont','hayfin','macfarlanes','fund','sponsor',
+      'cma','fca','hmrc','merger','acquisition','rate','mpc','inflation','planning','tax','carried interest','esg',
+      'reit','pere','recapitalisation','sale and leaseback','joint venture','distressed','refinancing','cmbs'];
+    return keywords.some(function (k) { return text.indexOf(k) !== -1; });
+  }
+
+  /* ============================================================
+     LIVE FEED FETCH ORCHESTRATION
+     ============================================================ */
+
+  async function fetchFeed(feed) {
+    try {
+      let text;
+      if (feed.direct) {
+        const res = await fetchTimeout(feed.url);
+        if (!res || !res.ok) return null;
+        text = await res.text();
+      } else {
+        const result = await fetchWithProxyChain(feed.url);
+        if (!result) return null;
+        text = result.text;
+      }
+      if (feed.parser === 'gov') return parseGov(text, feed);
+      if (feed.parser === 'rss') return parseRSS(text, feed);
+      if (feed.parser === 'atom') return parseAtom(text, feed);
+      return [];
+    } catch (e) { return null; }
+  }
+
+  async function fetchFX() {
+    try {
+      const res = await fetchTimeout(FX_URL);
+      if (!res || !res.ok) return null;
+      const data = await res.json();
+      // Returns rates with base GBP -> { USD, EUR, JPY, CHF }
+      return data.rates ? data.rates : null;
+    } catch (e) { return null; }
+  }
+
+  async function fetchStooq(symbol) {
+    const url = STOOQ_BASE + symbol;
+    const result = await fetchWithProxyChain(url);
+    if (!result) return null;
+    return parseStooqCSV(result.text);
+  }
+
+  /* ============================================================
+     RENDERING
+     ============================================================ */
+
+  function buildTicker(items) {
+    const tickerEl = document.getElementById('ticker');
+    const html = items.map(function (i) {
+      const tone = i.tone || 'flat';
+      const arrow = tone === 'up' ? '▲' : tone === 'down' ? '▼' : '·';
+      return '<span class="ticker-cell">'
+        + '<span class="ticker-name">' + escapeHTML(i.name) + '</span>'
+        + '<span class="ticker-val">' + escapeHTML(i.val) + '</span>'
+        + '<span class="ticker-delta ' + tone + '">' + arrow + ' ' + escapeHTML(i.delta || '') + '</span>'
+        + '</span>';
+    }).join('');
+    tickerEl.innerHTML = html + html; // duplicate for seamless scroll
+  }
+
+  function renderRates(target) {
+    const tbl = document.getElementById(target);
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    RATES_DATA.forEach(function (r) {
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'name' }, r.name));
+      tr.appendChild(el('td', { class: 'val' }, r.val));
+      const dCell = el('td', { class: 'delta ' + (r.tone || 'flat'), html: r.delta || '' });
+      tr.appendChild(dCell);
+      tbl.appendChild(tr);
+    });
+  }
+  function renderYields() {
+    const tbl = document.getElementById('yields-table');
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    YIELDS_DATA.forEach(function (y) {
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'y-name' }, y.name));
+      tr.appendChild(el('td', { class: 'y-val' }, y.val));
+      tr.appendChild(el('td', { class: 'delta ' + (y.tone || 'flat') }, y.delta || ''));
+      tbl.appendChild(tr);
+    });
+  }
+
+  function renderHero() {
+    document.getElementById('hero-date').textContent = fmtDate(TODAY).toUpperCase();
+    document.getElementById('hero-refresh').textContent = fmtDate(new Date(), { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('briefing-time').textContent = fmtDate(new Date(), { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function renderBriefing(extras) {
+    const list = document.getElementById('briefing-list');
+    list.innerHTML = '';
+    let items = BRIEFING_BASE.slice(0);
+    if (extras && extras.length) {
+      extras.slice(0, 2).forEach(function (x, i) { items.splice(i, 0, x); });
+    }
+    items.slice(0, 10).forEach(function (item, i) {
+      list.appendChild(renderBriefingItem(item, i + 1));
+    });
+  }
+  function renderBriefingItem(item, n) {
+    const li = el('li', { class: 'briefing-item' });
+    li.appendChild(el('div', { class: 'briefing-num' }, String(n).padStart(2, '0')));
+    const c = el('div', { class: 'briefing-content' });
+    c.appendChild(el('div', { class: 'briefing-title' }, item.headline));
+    c.appendChild(el('div', { class: 'briefing-why' }, item.why));
+    const meta = el('div', { class: 'briefing-meta' });
+    if (item.date) meta.appendChild(el('span', { class: 'meta-text' }, item.date));
+    if (item.tags) item.tags.forEach(function (t) {
+      let cls = 'tag';
+      if (t === 'BOSS' || t === 'WIN') cls = 'tag navy';
+      else if (t === 'LEGAL' || t === 'TAX') cls = 'tag sage';
+      else if (t === 'HOT' || t === 'TODAY') cls = 'tag crimson';
+      else if (t === 'OPPORTUNITY') cls = 'tag gold';
+      meta.appendChild(el('span', { class: cls }, t));
+    });
+    if (item.sources) item.sources.forEach(function (s) {
+      meta.appendChild(el('a', { href: s.url, target: '_blank', rel: 'noopener' }, '↗ ' + s.name));
+    });
+    const actions = el('div', { class: 'briefing-actions' });
+    actions.appendChild(el('button', {
+      class: 'icon-btn', title: 'Bookmark',
+      onclick: function () { saveStory(item); }
+    }, svgIcon('bookmark')));
+    meta.appendChild(actions);
+    c.appendChild(meta);
+    li.appendChild(c);
+    return li;
+  }
+
+  function renderPartnerCards() {
+    const vh = "Today's read: the BoE decision will reshape financing assumptions on every hotel and JV in her live pipeline. After Pandox/Dalata closed, her client conversations are likely to centre on whether bid-ask spreads stay narrow or widen on a hawkish surprise. Worth flagging the Brookfield/Fidere precedent as evidence the market has reopened — and the Blackstone Q1 BREIT raise as proof that capital is back into the wealth channel.";
+    const ah = "Today's read: the CMA derogations on Welltower (27 March) plus the L&G Stanley Studios closing (27 April) make this a healthcare-RE-and-PBSA week. Plus, KREF\\'s pivot — out of office, into UK industrial — is the listed-credit version of the OPRE thesis he\\'s been publishing. Worth raising data-centre / infra crossover at the next supervision.";
+    document.getElementById('vh-take').innerHTML = '<span class="partner-take-label">— Today\'s read</span>' + vh;
+    document.getElementById('ah-take').innerHTML = '<span class="partner-take-label">— Today\'s read</span>' + ah;
+    const fp = FUTURE_PARTNER_NOTES[Math.floor(Math.random() * FUTURE_PARTNER_NOTES.length)];
+    document.getElementById('fp-headline').textContent = fp.headline;
+    document.getElementById('fp-body').textContent = fp.body;
+  }
+
+  function renderIntelCards(target, items) {
+    const root = document.getElementById(target);
+    if (!root) return;
+    root.innerHTML = '';
+    items.forEach(function (m) {
+      const card = el('div', { class: 'intel-card' });
+      const head = el('div', { class: 'intel-head' });
+      head.appendChild(el('div', { class: 'intel-firm' + (m.isMac ? ' is-mac' : '') }, m.firm || m.stream || 'Item'));
+      const metaParts = [];
+      if (m.when) metaParts.push(m.when);
+      if (m.sector) metaParts.push(m.sector);
+      if (m.lead) metaParts.push(m.lead);
+      head.appendChild(el('div', { class: 'intel-meta' }, metaParts.join(' · ')));
+      card.appendChild(head);
+      const body = el('div', { class: 'intel-body' });
+      body.appendChild(el('div', { class: 'intel-deal', html: formatBold(m.deal || m.headline || '') }));
+      if (m.detail) body.appendChild(el('div', { class: 'intel-deal', style: 'margin-top:8px;font-size:13.5px;color:var(--ink-soft);', html: formatBold(m.detail) }));
+      if (m.take) body.appendChild(el('div', { class: 'intel-take', html: formatBold(m.take) }));
+      card.appendChild(body);
+      root.appendChild(card);
+    });
+  }
+
+  function renderCompetitor24h() {
+    renderIntelCards('daily-competitor-feed', COMPETITOR_24H);
+  }
+  function renderCompetitorFull() {
+    renderIntelCards('full-competitor-feed', COMPETITOR_FULL);
+    renderIntelCards('weekly-competitor-feed', COMPETITOR_FULL.slice(0, 8));
+  }
+  function renderFinance24h() {
+    const items = FINANCE_24H.map(function (f) {
+      return { firm: f.stream + ' · ' + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when };
+    });
+    renderIntelCards('daily-finance-feed', items);
+  }
+  function renderFinanceWeek() {
+    const items = FINANCE_WEEK.map(function (f) {
+      return { firm: f.stream + ' · ' + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when };
+    });
+    renderIntelCards('weekly-finance-feed', items);
+  }
+
+  function renderScoreboard() {
+    const tbl = document.getElementById('scoreboard');
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    const thead = el('thead');
+    const trh = el('tr');
+    ['Firm','Mandates (30d)','Most recent','Notes'].forEach(function (h) { trh.appendChild(el('th', null, h)); });
+    thead.appendChild(trh); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    SCOREBOARD.forEach(function (r) {
+      const tr = el('tr', { class: r.mac ? 'is-mac' : '' });
+      tr.appendChild(el('td', { class: 'firm' + (r.mac ? ' mac' : '') }, r.firm));
+      tr.appendChild(el('td', { class: 'count' }, String(r.count)));
+      tr.appendChild(el('td', null, r.last));
+      tr.appendChild(el('td', { class: 'muted' }, r.notes));
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+  }
+
+  function renderWeeklyDeals() {
+    const root = document.getElementById('weekly-deals');
+    if (!root) return;
+    root.innerHTML = '';
+    WEEKLY_DEALS.forEach(function (d) {
+      const card = el('div', { class: 'intel-card' });
+      const head = el('div', { class: 'intel-head' });
+      head.appendChild(el('div', { class: 'intel-firm' }, d.headline));
+      head.appendChild(el('div', { class: 'intel-meta' }, d.date + ' · ' + d.tag));
+      card.appendChild(head);
+      const body = el('div', { class: 'intel-body' });
+      body.appendChild(el('div', { class: 'intel-deal' }, d.body));
+      if (d.take) body.appendChild(el('div', { class: 'intel-take', html: formatBold(d.take) }));
+      card.appendChild(body);
+      root.appendChild(card);
+    });
+  }
+
+  function renderSectors() {
+    const sg = document.getElementById('sectors-grid');
+    if (!sg) return;
+    sg.innerHTML = '';
+    SECTORS.forEach(function (s) {
+      const tagClass = s.heat.toLowerCase().indexOf('hot') !== -1 ? 'tag crimson' :
+                       s.heat.toLowerCase().indexOf('steady') !== -1 ? 'tag sage' :
+                       s.heat.toLowerCase().indexOf('selective') !== -1 ? 'tag gold' : 'tag';
+      const card = el('div', { class: 'card col-4' });
+      const head = el('div', { class: 'card-head' });
+      head.appendChild(el('span', { class: 'label' }, '— SECTOR'));
+      head.appendChild(el('span', { class: tagClass }, s.heat.toUpperCase()));
+      card.appendChild(head);
+      card.appendChild(el('div', { class: 'h-card' }, s.name));
+      card.appendChild(el('p', { class: 'card-body', style: 'margin-top:10px;' }, s.note));
+      sg.appendChild(card);
+    });
+  }
+  function renderSponsors() {
+    const sp = document.getElementById('sponsors-grid');
+    if (!sp) return;
+    sp.innerHTML = '';
+    SPONSORS_VIEW.forEach(function (s) {
+      const card = el('div', { class: 'card col-6' });
+      const head = el('div', { class: 'card-head' });
+      head.appendChild(el('span', { class: 'label' }, '— SPONSOR'));
+      card.appendChild(head);
+      card.appendChild(el('div', { class: 'h-card' }, s.name));
+      card.appendChild(el('p', { class: 'card-body', style: 'margin-top:10px;' }, s.stance));
+      sp.appendChild(card);
+    });
+  }
+  function renderRadar() {
+    const r = document.getElementById('radar-grid');
+    if (!r) return;
+    r.innerHTML = '';
+    RADAR.forEach(function (item) {
+      const card = el('div', { class: 'card col-6' });
+      const head = el('div', { class: 'card-head' });
+      head.appendChild(el('span', { class: 'tag navy' }, 'RADAR'));
+      card.appendChild(head);
+      card.appendChild(el('div', { class: 'h-card' }, item.what));
+      card.appendChild(el('p', { class: 'card-body', style: 'margin-top:10px;' }, item.why));
+      r.appendChild(card);
+    });
+  }
+
+  /* ===== DEAL TABLE ===== */
+  let dealSort = { key: 'date', dir: -1 };
+  function setupDealControls() {
+    const sectorFilter = document.getElementById('deal-filter-sector');
+    const sectors = Array.from(new Set(DEAL_DB.map(function (d) { return d.sector; }))).sort();
+    sectors.forEach(function (s) {
+      const o = document.createElement('option'); o.value = s; o.textContent = s; sectorFilter.appendChild(o);
+    });
+    document.getElementById('deal-search').addEventListener('input', renderDeals);
+    sectorFilter.addEventListener('change', renderDeals);
+    document.getElementById('deal-filter-mac').addEventListener('change', renderDeals);
+    document.querySelectorAll('#deal-table thead th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () {
+        const k = th.getAttribute('data-sort');
+        if (dealSort.key === k) dealSort.dir *= -1; else { dealSort.key = k; dealSort.dir = 1; }
+        renderDeals();
+      });
+    });
+  }
+  function renderDeals() {
+    const tbody = document.getElementById('deal-tbody');
+    const search = (document.getElementById('deal-search').value || '').toLowerCase();
+    const filterSector = document.getElementById('deal-filter-sector').value;
+    const filterMac = document.getElementById('deal-filter-mac').value;
+    let rows = DEAL_DB.slice(0);
+    if (search) rows = rows.filter(function (d) { return JSON.stringify(d).toLowerCase().indexOf(search) !== -1; });
+    if (filterSector) rows = rows.filter(function (d) { return d.sector === filterSector; });
+    if (filterMac === 'mac') rows = rows.filter(function (d) { return d.mac; });
+    if (filterMac === 'other') rows = rows.filter(function (d) { return !d.mac; });
+    rows.sort(function (a, b) {
+      const k = dealSort.key;
+      let av = a[k], bv = b[k];
+      if (k === 'value') {
+        const num = function (s) { const m = String(s).match(/([\d.]+)\s*(bn|m|k)/i); if (!m) return 0; const n = parseFloat(m[1]); const u = m[2].toLowerCase(); return n * (u === 'bn' ? 1000 : u === 'k' ? 0.001 : 1); };
+        av = num(av); bv = num(bv);
+      } else { av = String(av || ''); bv = String(bv || ''); }
+      if (av < bv) return -1 * dealSort.dir;
+      if (av > bv) return 1 * dealSort.dir;
+      return 0;
+    });
+    tbody.innerHTML = '';
+    if (!rows.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No deals match these filters.</td></tr>'; return; }
+    rows.forEach(function (d) {
+      const tr = el('tr', d.mac ? { class: 'is-mac' } : null);
+      tr.appendChild(el('td', null, shortDate(d.date)));
+      tr.appendChild(el('td', { class: 'deal-buyer' }, d.buyer));
+      tr.appendChild(el('td', null, d.seller));
+      tr.appendChild(el('td', null, d.sector));
+      tr.appendChild(el('td', null, d.geo));
+      tr.appendChild(el('td', { class: 'deal-value' }, d.value));
+      const ad = el('td');
+      const aTxt = (d.advisers.buyer || '—') + (d.advisers.seller && d.advisers.seller !== '—' ? ' / ' + d.advisers.seller : '');
+      if (d.mac) ad.className = 'deal-mac';
+      ad.textContent = aTxt;
+      tr.appendChild(ad);
+      tr.appendChild(el('td', { class: 'deal-takeaway' }, d.takeaway));
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ===== LEGAL ===== */
+  function renderLegal(liveItems) {
+    const root = document.getElementById('legal-feed');
+    if (!root) return;
+    root.innerHTML = '';
+    const baseItems = [
+      { title:'CMA: Welltower / Barchester / HC-One / Aria / Danforth — Phase 1', when:'Live',
+        summary:'Investigation into £6.4bn UK senior-care consolidation. Latest derogations issued 27 March. Phase 2 referral and divestment remedies remain real possibilities.',
+        url:'https://www.gov.uk/cma-cases/welltower-slash-multiple-care-homes-merger-inquiries' },
+      { title:'BoE rate decision — 30 April 2026', when:'Today 12:00',
+        summary:'MPC voted unanimously to hold at 3.75% on 19 March. Markets split on today: hold likely, hike possible if Iran-driven inflation persists.',
+        url:'https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/monetary-policy-summary-and-minutes' },
+      { title:'Tax: APR/BPR cap, BADR rate rise — 6 April 2026 in force', when:'6 Apr',
+        summary:'£2.5m combined cap on 100% APR/BPR, then 50% above. BADR/IR rate up from 14% to 18%. Dividend rates +2%.',
+        url:'https://www.macfarlanes.com/insights/102mlsj/the-spring-statement-2026-no-tax-rises-or-policy-changes-for-private-clients/' },
+      { title:'FCA Regulatory Priorities reports — replacing portfolio letters', when:'24 Feb',
+        summary:'New annual format. Wholesale buy-side report due in March covers PE/RE fund managers.',
+        url:'https://www.macfarlanes.com/insights/102mmki/investment-management-update-march-2026/' },
+      { title:'PISCES private securities market — first transaction live', when:'21 Feb',
+        summary:'New LSE Private Securities Market under PISCES regime. First trade completed. Real partial-liquidity option for sponsors short of IPO.',
+        url:'https://www.macfarlanes.com/insights/102mkn6/corporate-law-update-21-27-february-2026/' },
+      { title:'UK SRS S1 / S2 sustainability standards — final form published', when:'Q1 2026',
+        summary:'UK ISSB-equivalent sustainability standards finalised. FCA consulting on requiring listed companies to report Scope 1+2 emissions.',
+        url:'https://www.macfarlanes.com/insights/102mh0u/corporate-law-update-31-january-6-february-2026/' },
+      { title:'IFPR revamp: PS25/14 — definition of capital from 1 April 2026', when:'1 Apr',
+        summary:'MIFIDPRU 3 replaced. Simplifies CET1 interim profits notification. Lower admin burden for FCA investment firms.',
+        url:'https://www.macfarlanes.com/what-we-think/102eli5/an-ifpr-revamp-preparing-for-changes-to-the-definition-of-capital-for-fca-investment-firms-102lttq/' },
+      { title:'Takeover Code update — dual-class share structures', when:'4 Feb',
+        summary:'New Code in force 4 February. Updated guidance on IPO procedure when companies become Code-subject.',
+        url:'https://www.macfarlanes.com/insights/102mh0u/corporate-law-update-31-january-6-february-2026/' }
+    ];
+    if (liveItems && liveItems.length) {
+      liveItems.slice(0, 4).forEach(function (li) {
+        baseItems.unshift({ title: li.title, when: relativeDate(li.date) || 'recent', summary: li.snippet || '', url: li.url, source: li.source });
+      });
+    }
+    baseItems.forEach(function (it) {
+      const card = el('div', { class: 'intel-card' });
+      const head = el('div', { class: 'intel-head' });
+      head.appendChild(el('div', { class: 'intel-firm' }, it.title));
+      head.appendChild(el('div', { class: 'intel-meta' }, (it.source ? 'Live · ' + it.source + ' · ' : '') + it.when));
+      card.appendChild(head);
+      const body = el('div', { class: 'intel-body' });
+      body.appendChild(el('div', { class: 'intel-deal' }, it.summary));
+      if (it.url) {
+        const meta = el('div', { class: 'intel-take' });
+        meta.appendChild(el('a', { href: it.url, target: '_blank', rel: 'noopener' }, '↗ Source'));
+        body.appendChild(meta);
+      }
+      card.appendChild(body);
+      root.appendChild(card);
+    });
+  }
+
+  /* ===== TALKING POINTS ===== */
+  function renderTalking() {
+    const root = document.getElementById('talking-feed');
+    if (!root) return;
+    root.innerHTML = '';
+    TALKING_POINTS.forEach(function (tp) {
+      const wrap = el('div', { class: 'talk-card' });
+      wrap.appendChild(el('div', { class: 'talk-quote' }, tp.quote));
+      const foot = el('div', { class: 'talk-foot' });
+      foot.appendChild(el('span', { class: 'talk-context' }, tp.context));
+      const copyBtn = el('button', {
+        class: 'talk-copy-btn',
+        onclick: function (e) { e.stopPropagation(); copyToClipboard(tp.quote).then(function () { showToast('Copied'); }); }
+      }, 'Copy');
+      foot.appendChild(copyBtn);
+      wrap.appendChild(foot);
+      wrap.addEventListener('click', function () { copyToClipboard(tp.quote).then(function () { showToast('Copied'); }); });
+      root.appendChild(wrap);
+    });
+  }
+
+  function renderPartnerMode() {
+    const root = document.getElementById('partner-mode');
+    if (!root) return;
+    root.innerHTML = '';
+    PARTNER_MODE.forEach(function (p, i) {
+      const card = el('div', { class: 'card', style: 'margin-bottom:14px;' });
+      const head = el('div', { class: 'card-head' });
+      head.appendChild(el('span', { class: 'tag navy' }, '— PARTNER MOVE ' + String(i + 1).padStart(2, '0')));
+      card.appendChild(head);
+      card.appendChild(el('div', { class: 'h-card', style: 'font-size:24px;' }, p.headline));
+      card.appendChild(el('p', { class: 'card-body', style: 'margin-top:12px; font-size:15.5px; line-height:1.65;' }, p.body));
+      root.appendChild(card);
+    });
+  }
+
+  /* ===== BOOKMARKS ===== */
+  const STORAGE_NOTES = 'pt_notes_v3';
+  const STORAGE_STORIES = 'pt_stories_v3';
+  function getNotes() { try { return JSON.parse(localStorage.getItem(STORAGE_NOTES) || '[]'); } catch (e) { return []; } }
+  function setNotes(n) { localStorage.setItem(STORAGE_NOTES, JSON.stringify(n)); }
+  function getStories() { try { return JSON.parse(localStorage.getItem(STORAGE_STORIES) || '[]'); } catch (e) { return []; } }
+  function setStories(s) { localStorage.setItem(STORAGE_STORIES, JSON.stringify(s)); }
+  function saveStory(item) {
+    const stories = getStories();
+    if (stories.find(function (s) { return s.headline === item.headline; })) { showToast('Already saved'); return; }
+    stories.unshift(Object.assign({}, item, { savedAt: new Date().toISOString() }));
+    setStories(stories);
+    showToast('Saved to bookmarks');
+    renderSavedStories();
+  }
+  function setupNotes() {
+    document.getElementById('note-save').addEventListener('click', function () {
+      const ta = document.getElementById('note-input');
+      const text = (ta.value || '').trim();
+      if (!text) return;
+      const notes = getNotes();
+      notes.unshift({ text: text, time: new Date().toISOString() });
+      setNotes(notes);
+      ta.value = '';
+      renderNotes();
+      showToast('Saved');
+    });
+    document.getElementById('export-bookmarks').addEventListener('click', function () {
+      const stories = getStories();
+      const notes = getNotes();
+      const out = '# PARTNER TRACKER — BOOKMARKS EXPORT\n\n## Stories\n' +
+        stories.map(function (s) { return '- ' + s.headline + ' (' + (s.savedAt || '') + ')'; }).join('\n') +
+        '\n\n## Notes\n' + notes.map(function (n) { return '- [' + n.time + '] ' + n.text; }).join('\n');
+      copyToClipboard(out).then(function () { showToast('Exported to clipboard'); });
+    });
+    renderNotes();
+    renderSavedStories();
+  }
+  function renderNotes() {
+    const list = document.getElementById('saved-list');
+    const notes = getNotes();
+    document.getElementById('note-count').textContent = notes.length;
+    list.innerHTML = '';
+    if (!notes.length) { list.innerHTML = '<li class="empty-note">No notes yet.</li>'; return; }
+    notes.forEach(function (n, i) {
+      const item = el('li', { class: 'saved-item' });
+      const c = el('div', { class: 'saved-item-content' });
+      c.appendChild(el('div', null, n.text));
+      c.appendChild(el('div', { class: 'saved-item-time' }, fmtDate(new Date(n.time), { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })));
+      item.appendChild(c);
+      item.appendChild(el('button', {
+        class: 'icon-btn', title: 'Delete',
+        onclick: function () { const all = getNotes(); all.splice(i, 1); setNotes(all); renderNotes(); }
+      }, svgIcon('trash')));
+      list.appendChild(item);
+    });
+  }
+  function renderSavedStories() {
+    const root = document.getElementById('saved-stories');
+    if (!root) return;
+    const stories = getStories();
+    root.innerHTML = '';
+    if (!stories.length) { root.innerHTML = '<div class="empty-note">No bookmarked stories yet. Use the bookmark icon next to any briefing item.</div>'; return; }
+    stories.forEach(function (s, i) {
+      const card = el('div', { class: 'card', style: 'margin-bottom:10px;' });
+      const head = el('div', { class: 'card-head' });
+      head.appendChild(el('span', { class: 'label' }, '— SAVED ' + fmtDate(new Date(s.savedAt || Date.now()), { day:'2-digit', month:'short' })));
+      head.appendChild(el('button', {
+        class: 'icon-btn', title: 'Remove',
+        onclick: function () { const all = getStories(); all.splice(i, 1); setStories(all); renderSavedStories(); }
+      }, svgIcon('trash')));
+      card.appendChild(head);
+      card.appendChild(el('div', { class: 'h-card' }, s.headline));
+      if (s.why) card.appendChild(el('p', { class: 'card-body', style: 'margin-top:8px;' }, s.why));
+      root.appendChild(card);
+    });
+  }
+
+  /* ===== NAV ===== */
+  function setupNav() {
+    document.querySelectorAll('.nav-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const v = btn.getAttribute('data-view');
+        document.querySelectorAll('.nav-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        document.querySelectorAll('.view').forEach(function (vw) { vw.classList.remove('active'); });
+        const target = document.getElementById('view-' + v);
+        if (target) target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }
+
+  /* ===== LIVE MARKETS ===== */
+  async function loadLiveMarkets() {
+    const fxRates = await fetchFX();
+    const reitData = {};
+    // Fetch REITs sequentially with bounded concurrency to avoid hammering proxies
+    for (let i = 0; i < REIT_TICKERS.length; i++) {
+      const t = REIT_TICKERS[i];
+      try {
+        const r = await fetchStooq(t.symbol);
+        if (r && r.close) reitData[t.symbol] = r;
+      } catch (e) { /* skip */ }
+      if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 300); }); // mild pacing
+    }
+    // Indices
+    const indexData = {};
+    for (let i = 0; i < INDEX_TICKERS.length; i++) {
+      const t = INDEX_TICKERS[i];
+      try {
+        const r = await fetchStooq(t.symbol);
+        if (r && r.close) indexData[t.symbol] = r;
+      } catch (e) { }
+    }
+    return { fx: fxRates, reits: reitData, indices: indexData };
+  }
+
+  function renderFXTable(rates) {
+    const tbl = document.getElementById('fx-table');
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    if (!rates) {
+      tbl.innerHTML = '<tr><td class="muted" style="text-align:center;padding:30px;">FX feed unavailable. Showing seed data.</td></tr>';
+      const seed = [['GBP/USD', '1.262'], ['GBP/EUR', '1.182'], ['GBP/JPY', '198.40'], ['GBP/CHF', '1.115']];
+      seed.forEach(function (s) {
+        const tr = el('tr');
+        tr.appendChild(el('td', { class: 'name' }, s[0]));
+        tr.appendChild(el('td', { class: 'val' }, s[1]));
+        tr.appendChild(el('td', { class: 'delta flat' }, '·'));
+        tbl.appendChild(tr);
+      });
+      return;
+    }
+    Object.keys(rates).forEach(function (k) {
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'name' }, 'GBP/' + k));
+      tr.appendChild(el('td', { class: 'val' }, rates[k].toFixed(4)));
+      tr.appendChild(el('td', { class: 'delta flat' }, 'ECB ref'));
+      tbl.appendChild(tr);
+    });
+  }
+  function renderReitsTable(reitData, indexData, target) {
+    const tbl = document.getElementById(target);
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    INDEX_TICKERS.forEach(function (t) {
+      const d = indexData[t.symbol];
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'name' }, t.name));
+      tr.appendChild(el('td', { class: 'ticker' }, t.symbol.toUpperCase()));
+      if (d) {
+        const delta = ((d.close - d.open) / d.open) * 100;
+        const tone = delta > 0.05 ? 'up' : delta < -0.05 ? 'down' : 'flat';
+        tr.appendChild(el('td', { class: 'val' }, d.close.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })));
+        tr.appendChild(el('td', { class: 'delta ' + tone }, (delta >= 0 ? '+' : '') + delta.toFixed(2) + '%'));
+      } else {
+        tr.appendChild(el('td', { class: 'val muted' }, '—'));
+        tr.appendChild(el('td', { class: 'delta flat' }, 'n/a'));
+      }
+      tbl.appendChild(tr);
+    });
+    REIT_TICKERS.forEach(function (t) {
+      const d = reitData[t.symbol];
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'name' }, t.name));
+      tr.appendChild(el('td', { class: 'ticker' }, t.symbol.toUpperCase().replace('.UK', '')));
+      if (d) {
+        const delta = ((d.close - d.open) / d.open) * 100;
+        const tone = delta > 0.1 ? 'up' : delta < -0.1 ? 'down' : 'flat';
+        tr.appendChild(el('td', { class: 'val' }, d.close.toFixed(2) + 'p'));
+        tr.appendChild(el('td', { class: 'delta ' + tone }, (delta >= 0 ? '+' : '') + delta.toFixed(2) + '%'));
+      } else {
+        tr.appendChild(el('td', { class: 'val muted' }, '—'));
+        tr.appendChild(el('td', { class: 'delta flat' }, 'n/a'));
+      }
+      tbl.appendChild(tr);
+    });
+  }
+
+  /* ===== STATUS ===== */
+  function setStatus(state, text) {
+    const s = document.getElementById('status-pill');
+    s.classList.remove('degraded', 'offline');
+    if (state === 'degraded') s.classList.add('degraded');
+    if (state === 'offline') s.classList.add('offline');
+    document.getElementById('status-text').textContent = text;
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+
+  async function init() {
+    // Static renders
+    buildTicker(TICKER_SEED);
+    renderHero();
+    renderBriefing();
+    renderPartnerCards();
+    renderRates('rates-table');
+    renderRates('rates-table-full');
+    renderYields();
+    renderFXTable(null);
+    renderReitsTable({}, {}, 'reits-compact');
+    renderReitsTable({}, {}, 'reits-table');
+    renderCompetitor24h();
+    renderCompetitorFull();
+    renderFinance24h();
+    renderFinanceWeek();
+    renderScoreboard();
+    renderWeeklyDeals();
+    renderSectors();
+    renderSponsors();
+    renderRadar();
+    setupDealControls();
+    renderDeals();
+    renderLegal([]);
+    renderTalking();
+    renderPartnerMode();
+    setupNotes();
+    setupNav();
+
+    // Live data
+    setStatus('live', 'Fetching feeds');
+
+    const feedPromises = FEEDS.map(function (f) {
+      return fetchFeed(f).then(function (items) { return { key: f.key, items: items, feed: f }; });
+    });
+    const marketsPromise = loadLiveMarkets();
+
+    try {
+      const [feedResults, marketsResult] = await Promise.all([
+        Promise.allSettled(feedPromises),
+        marketsPromise
+      ]);
+
+      const ok = []; const all = [];
+      feedResults.forEach(function (r) {
+        if (r.status === 'fulfilled' && r.value.items && r.value.items.length) {
+          ok.push(r.value.feed.label);
+          r.value.items.forEach(function (i) { all.push(i); });
+        }
+      });
+
+      const relevant = all.filter(isRelevant);
+      const briefingExtras = relevant.slice(0, 2).map(function (i) {
+        return {
+          headline: i.title,
+          why: i.snippet || ('Live from ' + i.source + '. Tap source to read full item.'),
+          sources: [{ name: i.source, url: i.url }],
+          tags: ['LIVE'],
+          date: relativeDate(i.date)
+        };
+      });
+      if (briefingExtras.length) renderBriefing(briefingExtras);
+
+      const legalItems = relevant.filter(function (i) { return i.tag === 'legal'; });
+      if (legalItems.length) renderLegal(legalItems);
+
+      // Render markets
+      if (marketsResult) {
+        if (marketsResult.fx) renderFXTable(marketsResult.fx);
+        renderReitsTable(marketsResult.reits || {}, marketsResult.indices || {}, 'reits-compact');
+        renderReitsTable(marketsResult.reits || {}, marketsResult.indices || {}, 'reits-table');
+
+        // Update ticker with live data where we have it
+        const liveTicker = TICKER_SEED.slice(0);
+        if (marketsResult.fx) {
+          if (marketsResult.fx.USD) liveTicker[2] = { name:'GBP/USD', val: marketsResult.fx.USD.toFixed(4), delta: 'ECB', tone: 'flat' };
+          if (marketsResult.fx.EUR) liveTicker[3] = { name:'GBP/EUR', val: marketsResult.fx.EUR.toFixed(4), delta: 'ECB', tone: 'flat' };
+        }
+        if (marketsResult.indices && marketsResult.indices['^ftse']) {
+          const f = marketsResult.indices['^ftse'];
+          const delta = ((f.close - f.open) / f.open) * 100;
+          liveTicker[4] = { name:'FTSE 100', val: f.close.toLocaleString('en-GB', { maximumFractionDigits: 0 }), delta: (delta >= 0 ? '+' : '') + delta.toFixed(2) + '%', tone: delta > 0.05 ? 'up' : delta < -0.05 ? 'down' : 'flat' };
+        }
+        const reitMap = { 5: 'sgro.uk', 6: 'blnd.uk', 7: 'utg.uk', 8: 'bbox.uk' };
+        Object.keys(reitMap).forEach(function (idx) {
+          const sym = reitMap[idx];
+          if (marketsResult.reits && marketsResult.reits[sym]) {
+            const d = marketsResult.reits[sym];
+            const delta = ((d.close - d.open) / d.open) * 100;
+            const name = sym.replace('.uk', '').toUpperCase();
+            liveTicker[idx] = {
+              name: name,
+              val: d.close.toFixed(0) + 'p',
+              delta: (delta >= 0 ? '+' : '') + delta.toFixed(2) + '%',
+              tone: delta > 0.1 ? 'up' : delta < -0.1 ? 'down' : 'flat'
+            };
+          }
+        });
+        buildTicker(liveTicker);
+      }
+
+      const totalFeeds = FEEDS.length;
+      document.getElementById('hero-sources').textContent = ok.length + ' / ' + totalFeeds;
+      const fxOk = marketsResult && marketsResult.fx ? 1 : 0;
+      const reitOk = marketsResult && Object.keys(marketsResult.reits || {}).length > 0 ? 1 : 0;
+      const marketsOk = fxOk + reitOk;
+      if (ok.length === 0 && marketsOk === 0) setStatus('offline', 'Curated only');
+      else if (ok.length < totalFeeds || marketsOk < 2) setStatus('degraded', 'Partial · ' + (ok.length + marketsOk) + ' of ' + (totalFeeds + 2));
+      else setStatus('live', 'Live');
+    } catch (e) {
+      console.error('init error', e);
+      setStatus('offline', 'Curated only');
+      document.getElementById('hero-sources').textContent = 'curated';
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
+</body>
+</html>
