@@ -3949,6 +3949,7 @@
       'Today is ' + dateLine + '.',
       '',
       'TASK: Use the web_search tool to find what has genuinely happened in the LAST 7 DAYS (favour the last 24-72 hours) across her market, then return ONE JSON object (schema below). This is market intelligence, not compliance trivia.',
+      'SEARCH BUDGET: Run at most 3-4 web searches in total (NOT per item). Batch related names into a single broad query (e.g. one query covering several sponsors). Be token-efficient.',
       '',
       'WHAT MATTERS MOST (search for these, in priority order):',
       '1. What her tracked SPONSORS / clients are doing — fundraising, deals, acquisitions/disposals, earnings, strategy, leadership. Sponsors she tracks: ' + (names.sponsors.join(', ') || '(none set)') + '.',
@@ -3973,7 +3974,7 @@
       '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ]',
       '}',
-      'Aim for up to ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly — fewer if the news does not support more. Every non-brief item needs a valid https sourceUrl (or sources[].url for top10).'
+      'Aim for ~5 top10, ~4 competitors, ~4 sponsors, ~3 deals, ~3 finance, ~3 weekly — fewer if the news does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
     ].join('\n');
   }
 
@@ -4054,11 +4055,16 @@
 
     var prompt = ptBuildIntelPrompt();
     var watched = ptGetWatchlist('sponsor').concat(ptGetWatchlist('competitor'));
-    var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(15, 10 + watched.length) }];
+    // Keep web searches few — each result is fed back as INPUT tokens, and entry-tier
+    // accounts have a low input-tokens-per-minute limit. 3-4 broad searches is the budget.
+    var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(4, 2 + watched.length) }];
 
     ptCallClaude(key, model, prompt, tools, 8000).then(function (resp) {
       if (!resp.ok) {
         var msg = (resp.body && resp.body.error && resp.body.error.message) ? resp.body.error.message : ('HTTP ' + resp.status);
+        if (resp.status === 429 || /rate limit/i.test(msg)) {
+          msg = 'Anthropic rate limit hit (your account’s tokens-per-minute cap). Wait a minute and tap Refresh, or raise your tier at console.anthropic.com.';
+        }
         ptIntelFailure(msg); return;
       }
       var text = ptExtractText(resp);
