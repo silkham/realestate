@@ -3794,7 +3794,7 @@
       bodyHTML =
         '<div class="ai-sec">' +
           '<div class="ai-sec-label">No brief yet</div>' +
-          '<p>Tap “Generate brief” to write today\'s. Cached for the day; auto-refreshes after 6am tomorrow.</p>' +
+          '<p>Tap “Generate brief” to pull this week\'s intelligence. Cached for the week; auto-refreshes Monday from 6am.</p>' +
         '</div>';
     } else if (state === 'ready' && brief && brief.html) {
       var staleBanner = (brief && brief.staleNote)
@@ -3949,7 +3949,7 @@
       'Today is ' + dateLine + '.',
       '',
       'TASK: Use the web_search tool to find what has genuinely happened in the LAST 7 DAYS (favour the last 24-72 hours) across her market, then return ONE JSON object (schema below). This is market intelligence, not compliance trivia.',
-      'SEARCH BUDGET: Run at most 3-4 web searches in total (NOT per item). Batch related names into a single broad query (e.g. one query covering several sponsors). Be token-efficient.',
+      'SEARCH BUDGET: This is a weekly deep pull — run several focused searches (up to ~10) to cover sponsors, competitors, deal flow, and macro thoroughly. Batch related names into broader queries where sensible, and prioritise the freshest, most material items.',
       '',
       'WHAT MATTERS MOST (search for these, in priority order):',
       '1. What her tracked SPONSORS / clients are doing — fundraising, deals, acquisitions/disposals, earnings, strategy, leadership. Sponsors she tracks: ' + (names.sponsors.join(', ') || '(none set)') + '.',
@@ -3974,7 +3974,7 @@
       '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ]',
       '}',
-      'Aim for ~5 top10, ~4 competitors, ~4 sponsors, ~3 deals, ~3 finance, ~3 weekly — fewer if the news does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
+      'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
     ].join('\n');
   }
 
@@ -4055,9 +4055,8 @@
 
     var prompt = ptBuildIntelPrompt();
     var watched = ptGetWatchlist('sponsor').concat(ptGetWatchlist('competitor'));
-    // Keep web searches few — each result is fed back as INPUT tokens, and entry-tier
-    // accounts have a low input-tokens-per-minute limit. 3-4 broad searches is the budget.
-    var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(4, 2 + watched.length) }];
+    // Weekly deep pull (Tier 2+): search broadly across sponsors, competitors, deals, macro.
+    var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(12, 8 + watched.length) }];
 
     ptCallClaude(key, model, prompt, tools, 8000).then(function (resp) {
       if (!resp.ok) {
@@ -4096,24 +4095,34 @@
     ptRenderAllPanels();
   }
 
+  // Start of the current weekly window: the most recent Monday 06:00 (local UK
+  // time) that has already passed. The intel auto-refreshes once per week — on
+  // the first open after that boundary.
+  function ptWeeklyBoundary() {
+    var now = new Date();
+    var d = new Date(now);
+    var sinceMonday = (d.getDay() + 6) % 7; // Mon->0, Tue->1, ... Sun->6
+    d.setDate(d.getDate() - sinceMonday);
+    d.setHours(6, 0, 0, 0);
+    if (d > now) d.setDate(d.getDate() - 7); // before Monday 6am -> last week's window
+    return d;
+  }
+
   function ptMaybeAutoIntel() {
     var key = ptGet(PT_STORAGE.apiKey, '');
     if (!key) { ptRenderSetup(true); ptRenderBrief('idle', null); ptRenderAllPanels(); return; }
     ptRenderSetup(false);
 
+    var s = ptGetJSON(PT_STORAGE.intel, null);
     var briefCache = ptGetJSON(PT_STORAGE.brief, null);
-    if (ptIntelToday()) {
+    var fresh = s && s.data && s.stamp && (new Date(s.stamp) >= ptWeeklyBoundary());
+    if (fresh) {
       if (briefCache && briefCache.html) ptRenderBrief('ready', briefCache);
       ptRenderAllPanels();
       return;
     }
-    var hour = new Date().getHours();
-    if (hour >= 6) {
-      ptRunDailyIntel();
-    } else {
-      if (briefCache && briefCache.html) ptRenderBrief('ready', briefCache); else ptRenderBrief('idle', null);
-      ptRenderAllPanels();
-    }
+    // Past this week's Monday-6am boundary and not yet refreshed this week → pull now.
+    ptRunDailyIntel();
   }
 
   /* ============================================================
