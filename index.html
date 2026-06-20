@@ -2686,7 +2686,7 @@
   function renderBriefing(extras) {
     const list = document.getElementById('briefing-list');
     list.innerHTML = '';
-    let items = BRIEFING_BASE.slice(0);
+    let items = ptIntelOr('top10', BRIEFING_BASE).slice(0);
     if (extras && extras.length) {
       extras.slice(0, 4).forEach(function (x, i) { items.splice(i, 0, x); });
     }
@@ -2741,7 +2741,7 @@
     if (fpB) fpB.textContent = fp.body;
   }
 
-  function renderIntelCards(target, items) {
+  function renderIntelCards(target, items, isLive) {
     const root = document.getElementById(target);
     if (!root) return;
     root.innerHTML = '';
@@ -2749,6 +2749,7 @@
       const card = el('div', { class: 'intel-card' });
       const head = el('div', { class: 'intel-head' });
       head.appendChild(el('div', { class: 'intel-firm' + (m.isMac ? ' is-mac' : '') }, m.firm || m.stream || 'Item'));
+      head.appendChild(el('span', { class: isLive ? 'tag crimson' : 'tag', style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, isLive ? 'LIVE' : 'CURATED'));
       const metaParts = [];
       if (m.when) metaParts.push(m.when);
       if (m.sector) metaParts.push(m.sector);
@@ -2771,23 +2772,30 @@
   }
 
   function renderCompetitor24h() {
-    renderIntelCards('daily-competitor-feed', COMPETITOR_24H);
+    const data = ptIntelOr('competitors', COMPETITOR_24H);
+    renderIntelCards('daily-competitor-feed', data, data !== COMPETITOR_24H);
   }
   function renderCompetitorFull() {
-    renderIntelCards('full-competitor-feed', COMPETITOR_FULL);
-    renderIntelCards('weekly-competitor-feed', COMPETITOR_FULL.slice(0, 8));
+    const live = ptIntelOr('competitors', COMPETITOR_FULL);
+    const isLive = live !== COMPETITOR_FULL;
+    renderIntelCards('full-competitor-feed', live, isLive);
+    renderIntelCards('weekly-competitor-feed', live.slice(0, 8), isLive);
   }
   function renderFinance24h() {
-    const items = FINANCE_24H.map(function (f) {
-      return { firm: f.stream + ' · ' + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when, sourceUrl: f.sourceUrl, sourceName: f.sourceName };
+    const src = ptIntelOr('finance', FINANCE_24H);
+    const isLive = src !== FINANCE_24H;
+    const items = src.map(function (f) {
+      return { firm: (f.stream ? f.stream + ' · ' : '') + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when, sourceUrl: f.sourceUrl, sourceName: f.sourceName };
     });
-    renderIntelCards('daily-finance-feed', items);
+    renderIntelCards('daily-finance-feed', items, isLive);
   }
   function renderFinanceWeek() {
-    const items = FINANCE_WEEK.map(function (f) {
-      return { firm: f.stream + ' · ' + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when, sourceUrl: f.sourceUrl, sourceName: f.sourceName };
+    const src = ptIntelOr('finance', FINANCE_WEEK);
+    const isLive = src !== FINANCE_WEEK;
+    const items = src.map(function (f) {
+      return { firm: (f.stream ? f.stream + ' · ' : '') + f.firm, deal: f.headline, detail: f.detail, take: f.take, when: f.when, sourceUrl: f.sourceUrl, sourceName: f.sourceName };
     });
-    renderIntelCards('weekly-finance-feed', items);
+    renderIntelCards('weekly-finance-feed', items, isLive);
   }
 
   function renderScoreboard() {
@@ -2814,11 +2822,14 @@
     const root = document.getElementById('weekly-deals');
     if (!root) return;
     root.innerHTML = '';
-    WEEKLY_DEALS.forEach(function (d) {
+    const wsrc = ptIntelOr('weekly', WEEKLY_DEALS);
+    const wLive = wsrc !== WEEKLY_DEALS;
+    wsrc.forEach(function (d) {
       const card = el('div', { class: 'intel-card' });
       const head = el('div', { class: 'intel-head' });
       head.appendChild(el('div', { class: 'intel-firm' }, d.headline));
-      head.appendChild(el('div', { class: 'intel-meta' }, d.date + ' · ' + d.tag));
+      head.appendChild(el('span', { class: wLive ? 'tag crimson' : 'tag', style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, wLive ? 'LIVE' : 'CURATED'));
+      head.appendChild(el('div', { class: 'intel-meta' }, (d.date || '') + (d.tag ? ' · ' + d.tag : '')));
       card.appendChild(head);
       const body = el('div', { class: 'intel-body' });
       body.appendChild(el('div', { class: 'intel-deal' }, d.body));
@@ -2865,10 +2876,13 @@
     const sp = document.getElementById('sponsors-grid');
     if (!sp) return;
     sp.innerHTML = '';
-    SPONSORS_VIEW.forEach(function (s) {
+    const spsrc = ptIntelOr('sponsors', SPONSORS_VIEW);
+    const spLive = spsrc !== SPONSORS_VIEW;
+    spsrc.forEach(function (s) {
       const card = el('div', { class: 'card col-6' });
       const head = el('div', { class: 'card-head' });
       head.appendChild(el('span', { class: 'label' }, '— SPONSOR'));
+      head.appendChild(el('span', { class: spLive ? 'tag crimson' : 'tag', style: 'font-size:10px;letter-spacing:.06em;' }, spLive ? 'LIVE' : 'CURATED'));
       card.appendChild(head);
       card.appendChild(el('div', { class: 'h-card' }, s.name));
       card.appendChild(el('p', { class: 'card-body', style: 'margin-top:10px;' }, s.stance));
@@ -2924,7 +2938,7 @@
     const search = (document.getElementById('deal-search').value || '').toLowerCase();
     const filterSector = document.getElementById('deal-filter-sector').value;
     const filterMac = document.getElementById('deal-filter-mac').value;
-    let rows = DEAL_DB.slice(0);
+    let rows = ptIntelOr('deals', DEAL_DB).slice(0);
     if (search) rows = rows.filter(function (d) { return JSON.stringify(d).toLowerCase().indexOf(search) !== -1; });
     if (filterSector) rows = rows.filter(function (d) { return d.sector === filterSector; });
     if (filterMac === 'mac') rows = rows.filter(function (d) { return d.mac; });
@@ -2951,11 +2965,17 @@
       tr.appendChild(el('td', null, d.geo));
       tr.appendChild(el('td', { class: 'deal-value' }, d.value));
       const ad = el('td');
-      const aTxt = (d.advisers.buyer || '—') + (d.advisers.seller && d.advisers.seller !== '—' ? ' / ' + d.advisers.seller : '');
+      const adv = d.advisers || {};
+      const aTxt = (adv.buyer || '—') + (adv.seller && adv.seller !== '—' ? ' / ' + adv.seller : '');
       if (d.mac) ad.className = 'deal-mac';
       ad.textContent = aTxt;
       tr.appendChild(ad);
-      tr.appendChild(el('td', { class: 'deal-takeaway' }, d.takeaway));
+      const tk = el('td', { class: 'deal-takeaway' }, d.takeaway || '');
+      if (d.sourceUrl) {
+        tk.appendChild(document.createTextNode(' '));
+        tk.appendChild(el('a', { href: d.sourceUrl, target: '_blank', rel: 'noopener noreferrer', style: 'white-space:nowrap;' }, '↗ ' + (d.sourceName || 'source')));
+      }
+      tr.appendChild(tk);
       tbody.appendChild(tr);
     });
   }
@@ -3370,6 +3390,7 @@
     apiKey: 'pt_api_key_v3p',
     model:  'pt_model_v3p',
     brief:  'pt_brief_v3p',   // { date, html, stamp }
+    intel:  'pt_intel_v3p',   // { date, data:{brief,top10,competitors,sponsors,deals,finance,weekly}, stamp }
     sponsorWatch: 'pt_watch_sponsors_v3p',
     competitorWatch: 'pt_watch_competitors_v3p',
     webSearch: 'pt_web_search_v3p',  // '0' or '1'
@@ -3663,10 +3684,10 @@
   }
 
   /* ----- Claude API call ----- */
-  function ptCallClaude(apiKey, model, prompt, tools) {
+  function ptCallClaude(apiKey, model, prompt, tools, maxTokens) {
     var requestBody = {
       model: model || PT_DEFAULT_MODEL,
-      max_tokens: 4000,
+      max_tokens: maxTokens || 4000,
       messages: [{ role: 'user', content: prompt }]
     };
     if (tools && tools.length) requestBody.tools = tools;
@@ -3769,7 +3790,7 @@
       '</div>';
 
     var regen = document.getElementById('ai-regen-brief');
-    if (regen) regen.addEventListener('click', function(){ ptRegenerateBrief(); });
+    if (regen) regen.addEventListener('click', function(){ ptRunDailyIntel(); });
     var copy = document.getElementById('ai-copy-brief');
     if (copy) copy.addEventListener('click', ptCopyBrief);
   }
@@ -3842,6 +3863,205 @@
     }
   }
 
+  /* ============================================================
+     2.0 — DAILY CONSOLIDATED INTELLIGENCE PULL
+     One web-searched, cited Claude call per day returns a structured
+     JSON object that powers every panel. Live-first; curated arrays
+     are the offline fallback. Cite-or-drop is enforced.
+     ============================================================ */
+
+  function ptHasUrl(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
+
+  // Last cached intel data (any date) so panels can show the most recent
+  // live picture rather than the (April) curated arrays.
+  function ptGetIntel() {
+    var s = ptGetJSON(PT_STORAGE.intel, null);
+    return (s && s.data) ? s.data : null;
+  }
+  function ptIntelToday() {
+    var s = ptGetJSON(PT_STORAGE.intel, null);
+    return !!(s && s.date === ptYMD(new Date()) && s.data);
+  }
+  // Live-first accessor: returns the live section if present & non-empty,
+  // otherwise the curated array (so a panel is never empty). Identity of the
+  // returned array tells the caller whether it's live (!== curated).
+  function ptIntelOr(sectionKey, curatedArray) {
+    var d = ptGetIntel();
+    if (d && Array.isArray(d[sectionKey]) && d[sectionKey].length) return d[sectionKey];
+    return curatedArray;
+  }
+
+  function ptTrackedNames() {
+    var sponsors = [], competitors = [];
+    try { (SPONSOR_REGISTRY || []).forEach(function (s) { if (s && s.name) sponsors.push(s.name); }); } catch (e) {}
+    try { (typeof SPONSORS_VIEW !== 'undefined' ? SPONSORS_VIEW : []).forEach(function (s) { if (s && s.name && sponsors.indexOf(s.name) === -1) sponsors.push(s.name); }); } catch (e) {}
+    try { (COMPETITOR_PARTNERS || []).forEach(function (c) { if (c && c.firm) competitors.push(c.firm); }); } catch (e) {}
+    sponsors = sponsors.concat(ptGetWatchlist('sponsor'));
+    competitors = competitors.concat(ptGetWatchlist('competitor'));
+    // de-dupe
+    var uniq = function (a) { var o = {}; return a.filter(function (x) { var k = String(x).toLowerCase(); if (o[k]) return false; o[k] = 1; return true; }); };
+    return { sponsors: uniq(sponsors), competitors: uniq(competitors) };
+  }
+
+  function ptBuildIntelPrompt() {
+    var dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+    var names = ptTrackedNames();
+    return [
+      'You are the research engine for a private-markets / real-estate intelligence app used by a senior associate in the Private Capital Real Estate (PCRE) practice at Macfarlanes LLP, London. She reads it on her phone each morning and may repeat items to partners, so ACCURACY IS CRITICAL.',
+      '',
+      'Today is ' + dateLine + '.',
+      '',
+      'TASK: Use the web_search tool to find what has genuinely happened in the LAST 7 DAYS (favour the last 24-72 hours) across her market, then return ONE JSON object (schema below). This is market intelligence, not compliance trivia.',
+      '',
+      'WHAT MATTERS MOST (search for these, in priority order):',
+      '1. What her tracked SPONSORS / clients are doing — fundraising, deals, acquisitions/disposals, earnings, strategy, leadership. Sponsors she tracks: ' + (names.sponsors.join(', ') || '(none set)') + '.',
+      '2. What COMPETITOR law firms are doing — mandates won, lateral partner hires, promotions, notable instructions on real-estate / PE / funds deals. Firms she tracks: ' + (names.competitors.join(', ') || '(none set)') + '.',
+      '3. Real-estate / private-capital DEAL FLOW generally — M&A, take-privates, big financings, CMBS, fund closes, sector moves (logistics, living/BTR/PBSA, hotels/OPRE, healthcare RE, data centres, offices).',
+      '4. Debt markets / rates / macro ONLY where it materially affects real-estate financing. Keep regulatory (FCA/CMA/HMRC/BoE procedural) to AT MOST one item, and only if genuinely consequential — do NOT pad with regulatory notices.',
+      '',
+      'HARD RULES:',
+      '- CITE OR DROP: every item MUST include a real, working source URL (https) you actually found via web search, plus a real publication date. If you cannot cite it, DO NOT include it. Never invent sources, dates, deals, or quotes.',
+      '- Prefer named, dated specifics ("Blackstone closed X on 18 June, per Reuters") over vague themes.',
+      '- British English. Plain, useful, calm. Briefly gloss jargon (RIDEA, BREIT, CMBS, OPRE, NAV).',
+      '- Quality over quantity: on a quiet day return fewer items rather than filler. Better 4 sourced items than 10 padded ones.',
+      '',
+      'OUTPUT: Return ONLY a single JSON object (no prose before or after, no markdown fences). Use this exact shape; omit any array you have nothing sourced for:',
+      '{',
+      '  "brief": "<markdown morning brief: 4 sections with headers \\"## What moved overnight\\", \\"## What the market is talking about\\", \\"## Conversation primers\\", \\"## Worth knowing\\". Cite sources inline with dates. Lead with sponsor/competitor/deal news, not regulation.>",',
+      '  "top10": [ { "headline": "...", "why": "1-2 sentence plain-English why-it-matters", "date": "e.g. 18 Jun", "tags": ["LIVE"], "sources": [ { "name": "Reuters", "url": "https://..." } ] } ],',
+      '  "competitors": [ { "firm": "Latham & Watkins", "when": "18 Jun", "sector": "RE finance", "deal": "what they did", "lead": "named partner if known", "take": "why it matters for her", "sourceName": "Legal Business", "sourceUrl": "https://..." } ],',
+      '  "sponsors": [ { "name": "Blackstone", "stance": "what they are doing now + why it matters", "sourceName": "Blackstone IR", "sourceUrl": "https://..." } ],',
+      '  "deals": [ { "date": "2026-06-18", "buyer": "...", "seller": "...", "sector": "Logistics", "geo": "UK", "value": "£500m", "takeaway": "why it matters", "sourceName": "PERE", "sourceUrl": "https://..." } ],',
+      '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
+      '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ]',
+      '}',
+      'Aim for up to ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly — fewer if the news does not support more. Every non-brief item needs a valid https sourceUrl (or sources[].url for top10).'
+    ].join('\n');
+  }
+
+  // Pull the first balanced JSON object out of the model's text response.
+  function ptParseIntel(text) {
+    if (!text) return null;
+    var t = String(text);
+    var fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) t = fence[1];
+    var start = t.indexOf('{'), end = t.lastIndexOf('}');
+    if (start < 0 || end <= start) return null;
+    try { return JSON.parse(t.slice(start, end + 1)); } catch (e) { return null; }
+  }
+
+  // Enforce cite-or-drop and normalise shapes. Returns cleaned data.
+  function ptValidateIntel(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    var out = {};
+    if (typeof raw.brief === 'string' && raw.brief.trim()) out.brief = raw.brief.trim();
+
+    if (Array.isArray(raw.top10)) {
+      out.top10 = raw.top10.filter(function (i) {
+        return i && i.headline && i.sources && i.sources[0] && ptHasUrl(i.sources[0].url);
+      }).map(function (i) {
+        var tags = Array.isArray(i.tags) ? i.tags.slice(0) : [];
+        if (tags.indexOf('LIVE') === -1) tags.unshift('LIVE');
+        return { headline: i.headline, why: i.why || '', date: i.date || '', tags: tags, sources: i.sources };
+      });
+    }
+    var citedList = function (arr) {
+      return Array.isArray(arr) ? arr.filter(function (i) { return i && ptHasUrl(i.sourceUrl); }) : undefined;
+    };
+    out.competitors = citedList(raw.competitors);
+    out.sponsors    = citedList(raw.sponsors);
+    out.finance     = citedList(raw.finance);
+    out.weekly      = citedList(raw.weekly);
+    out.deals = Array.isArray(raw.deals) ? raw.deals.filter(function (d) { return d && ptHasUrl(d.sourceUrl); }).map(function (d) {
+      return {
+        date: d.date || '', buyer: d.buyer || '', seller: d.seller || '—', sector: d.sector || '', geo: d.geo || '',
+        value: d.value || 'n/d', takeaway: d.takeaway || '', mac: false,
+        advisers: { buyer: (d.advisers && d.advisers.buyer) || 'n/d', seller: (d.advisers && d.advisers.seller) || '—' },
+        sourceName: d.sourceName, sourceUrl: d.sourceUrl
+      };
+    }) : undefined;
+    // strip empty/undefined sections
+    Object.keys(out).forEach(function (k) { if (Array.isArray(out[k]) && !out[k].length) delete out[k]; });
+    return out;
+  }
+
+  // Re-render every panel that sources from intel (live-first). Safe to call
+  // repeatedly; each render falls back to curated data when no intel exists.
+  function ptRenderAllPanels() {
+    try { renderBriefing(); } catch (e) { console.error('renderBriefing', e); }
+    try { renderCompetitor24h(); } catch (e) { console.error('renderCompetitor24h', e); }
+    try { renderCompetitorFull(); } catch (e) { console.error('renderCompetitorFull', e); }
+    try { renderSponsors(); } catch (e) { console.error('renderSponsors', e); }
+    try { renderWeeklyDeals(); } catch (e) { console.error('renderWeeklyDeals', e); }
+    try { renderFinance24h(); } catch (e) { console.error('renderFinance24h', e); }
+    try { renderFinanceWeek(); } catch (e) { console.error('renderFinanceWeek', e); }
+    try { renderDeals(); } catch (e) { console.error('renderDeals', e); }
+  }
+
+  function ptRunDailyIntel() {
+    var key = ptGet(PT_STORAGE.apiKey, '');
+    var model = ptGet(PT_STORAGE.model, PT_DEFAULT_MODEL) || PT_DEFAULT_MODEL;
+    if (!key) { ptRenderSetup(true); ptRenderBrief('idle', null); return; }
+    ptRenderSetup(false);
+    ptRenderBrief('loading', null);
+
+    var prompt = ptBuildIntelPrompt();
+    var watched = ptGetWatchlist('sponsor').concat(ptGetWatchlist('competitor'));
+    var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(15, 10 + watched.length) }];
+
+    ptCallClaude(key, model, prompt, tools, 8000).then(function (resp) {
+      if (!resp.ok) {
+        var msg = (resp.body && resp.body.error && resp.body.error.message) ? resp.body.error.message : ('HTTP ' + resp.status);
+        ptIntelFailure(msg); return;
+      }
+      var text = ptExtractText(resp);
+      var data = ptValidateIntel(ptParseIntel(text));
+      if (!data) { ptIntelFailure('Could not read the intelligence response.'); return; }
+      var stamp = new Date().toISOString();
+      ptSetJSON(PT_STORAGE.intel, { date: ptYMD(new Date()), data: data, stamp: stamp });
+      // Brief card reuses the existing renderer/cache.
+      var briefObj = { date: ptYMD(new Date()), html: ptBriefMdToHTML(data.brief || '*Market intelligence updated.*'), stamp: stamp };
+      ptSetJSON(PT_STORAGE.brief, briefObj);
+      ptRenderBrief('ready', briefObj);
+      ptRenderAllPanels();
+    }).catch(function (e) {
+      ptIntelFailure('Network error: ' + (e && e.message ? e.message : 'unknown'));
+    });
+  }
+
+  // On failure keep the last good brief (with a note) and leave panels on the
+  // last cached intel (or curated fallback) — never strand the reader.
+  function ptIntelFailure(msg) {
+    var cached = ptGetJSON(PT_STORAGE.brief, null);
+    if (cached && cached.html) {
+      cached.staleNote = 'Could not refresh (' + msg + '). Showing the last update from ' + ptShortStamp(cached.stamp) + '.';
+      ptRenderBrief('ready', cached);
+    } else {
+      ptRenderBrief('error', { error: msg });
+    }
+    ptRenderAllPanels();
+  }
+
+  function ptMaybeAutoIntel() {
+    var key = ptGet(PT_STORAGE.apiKey, '');
+    if (!key) { ptRenderSetup(true); ptRenderBrief('idle', null); ptRenderAllPanels(); return; }
+    ptRenderSetup(false);
+
+    var briefCache = ptGetJSON(PT_STORAGE.brief, null);
+    if (ptIntelToday()) {
+      if (briefCache && briefCache.html) ptRenderBrief('ready', briefCache);
+      ptRenderAllPanels();
+      return;
+    }
+    var hour = new Date().getHours();
+    if (hour >= 6) {
+      ptRunDailyIntel();
+    } else {
+      if (briefCache && briefCache.html) ptRenderBrief('ready', briefCache); else ptRenderBrief('idle', null);
+      ptRenderAllPanels();
+    }
+  }
+
   function ptMaybeAutoBrief() {
     var key = ptGet(PT_STORAGE.apiKey, '');
     var saved = ptGetJSON(PT_STORAGE.brief, null);
@@ -3896,7 +4116,7 @@
     s.className = 'pt-settings-status ok';
     s.textContent = 'Saved.';
     setTimeout(ptCloseSettings, 700);
-    setTimeout(ptMaybeAutoBrief, 750);
+    setTimeout(ptMaybeAutoIntel, 750);
   }
   function ptTestKey() {
     var k = document.getElementById('pt-api-key').value.trim();
@@ -4397,7 +4617,7 @@
     ptRenderSponsorRegistry();
     ptRenderCompetitorPartners();
 
-    ptMaybeAutoBrief();
+    ptMaybeAutoIntel();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
