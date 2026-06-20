@@ -1671,7 +1671,27 @@
 <aside class="pt-settings" id="pt-settings" aria-hidden="true">
   <div class="pt-settings-grip"></div>
   <h2>Settings</h2>
-  <p class="desc">The morning brief is written by Claude. Add an Anthropic API key to enable it. The key is stored only on this device.</p>
+  <p class="desc">The morning brief is written by Claude. Add an Anthropic API key to enable it. Sign in below to sync your settings across devices.</p>
+
+  <div class="pt-watchlist" id="pt-sync" style="display:none">
+    <div class="pt-watchlist-head">
+      <strong>Sync across devices</strong>
+      <span id="pt-sync-who-tag">Email + password</span>
+    </div>
+    <div id="pt-sync-signedout">
+      <input type="email" id="pt-sync-email" placeholder="email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input type="password" id="pt-sync-pw" placeholder="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-top:8px;">
+      <div class="pt-settings-actions" style="margin-top:10px;">
+        <button class="ai-btn" id="pt-sync-signin" type="button">Sign in</button>
+        <button class="ai-btn ghost" id="pt-sync-signup" type="button">Create account</button>
+      </div>
+      <p class="hint">Use the same email + password on each device to sync your watchlists, model and API key.</p>
+    </div>
+    <div id="pt-sync-signedin" style="display:none">
+      <p class="hint">Signed in as <strong><span id="pt-sync-who"></span></strong>. <a href="#" id="pt-sync-now">Sync now</a> &middot; <a href="#" id="pt-sync-out">Sign out</a></p>
+    </div>
+    <div class="pt-settings-status" id="pt-sync-status"></div>
+  </div>
 
   <label for="pt-api-key">Anthropic API key</label>
   <input type="password" id="pt-api-key" placeholder="sk-ant-…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -3401,12 +3421,18 @@
     model:  'pt_model_v3p',
     brief:  'pt_brief_v3p',   // { date, html, stamp }
     intel:  'pt_intel_v3p',   // { date, data:{brief,top10,competitors,sponsors,deals,finance,weekly}, stamp }
+    session: 'pt_session_v3p',// Supabase auth session { access_token, refresh_token, expires_at, user_id, email }
     sponsorWatch: 'pt_watch_sponsors_v3p',
     competitorWatch: 'pt_watch_competitors_v3p',
     webSearch: 'pt_web_search_v3p',  // '0' or '1'
     research: 'pt_research_v3p'      // { name: { tag, html, stamp } }
   };
   var PT_DEFAULT_MODEL = 'claude-sonnet-4-6';
+
+  // Supabase cross-device sync (email + password). Anon key is public by design;
+  // per-user Row Level Security protects each account's data (incl. the API key).
+  var PT_SUPABASE_URL  = 'https://wqkhjbmsciuhwdqsdsni.supabase.co';
+  var PT_SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxa2hqYm1zY2l1aHdkcXNkc25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NzkzMTMsImV4cCI6MjA5NzU1NTMxM30.cAWtGGE42k_GeSQRE1ZnFZIXK2EOat35-xnaF2Gczsc';
 
   function ptGet(k, dflt) {
     try { var v = localStorage.getItem(k); return v == null ? dflt : v; } catch (e) { return dflt; }
@@ -3507,6 +3533,7 @@
   function ptSetWatchlist(kind, list) {
     var key = kind === 'sponsor' ? PT_STORAGE.sponsorWatch : PT_STORAGE.competitorWatch;
     ptSetJSON(key, list);
+    if (typeof ptSyncPushDebounced === 'function') ptSyncPushDebounced();
   }
   function ptAddToWatchlist(kind, name) {
     name = (name || '').trim();
@@ -4044,6 +4071,7 @@
       ptSetJSON(PT_STORAGE.brief, briefObj);
       ptRenderBrief('ready', briefObj);
       ptRenderAllPanels();
+      ptSyncPushDebounced();
     }).catch(function (e) {
       ptIntelFailure('Network error: ' + (e && e.message ? e.message : 'unknown'));
     });
@@ -4082,6 +4110,195 @@
     }
   }
 
+  /* ============================================================
+     CROSS-DEVICE SYNC (Supabase, email + password)
+     Stores a snapshot of the user's inputs in a per-user, RLS-protected
+     row. Last write wins. Anon key is public; RLS keeps data private.
+     ============================================================ */
+
+  var PT_SYNC_KEYS = [PT_STORAGE.apiKey, PT_STORAGE.model, PT_STORAGE.sponsorWatch, PT_STORAGE.competitorWatch, PT_STORAGE.brief, PT_STORAGE.intel];
+
+  function ptSyncConfigured() { return !!(PT_SUPABASE_URL && PT_SUPABASE_ANON); }
+  function ptGetSession() { return ptGetJSON(PT_STORAGE.session, null); }
+  function ptSetSession(s) { if (s) ptSetJSON(PT_STORAGE.session, s); else { try { localStorage.removeItem(PT_STORAGE.session); } catch (e) {} } }
+
+  function ptSbFetch(path, opts) {
+    opts = opts || {};
+    var headers = opts.headers || {};
+    headers.apikey = PT_SUPABASE_ANON;
+    headers['Content-Type'] = 'application/json';
+    return fetch(PT_SUPABASE_URL + path, {
+      method: opts.method || 'GET', headers: headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+  }
+
+  function ptStoreAuthResult(j) {
+    if (!j || !j.access_token) return null;
+    var sess = {
+      access_token: j.access_token, refresh_token: j.refresh_token,
+      expires_at: Date.now() + ((j.expires_in || 3600) * 1000),
+      user_id: (j.user && j.user.id) || j.user_id || '',
+      email: (j.user && j.user.email) || ''
+    };
+    ptSetSession(sess); return sess;
+  }
+
+  function ptSbAuth(kind, email, pw) {
+    var path = kind === 'signup' ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
+    return ptSbFetch(path, { method: 'POST', body: { email: email, password: pw } })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); });
+  }
+
+  // Ensure a non-expired access token; refresh if needed. Resolves to session or null.
+  function ptSbValidSession() {
+    var s = ptGetSession();
+    if (!s) return Promise.resolve(null);
+    if (Date.now() < s.expires_at - 60000) return Promise.resolve(s);
+    return ptSbFetch('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: s.refresh_token } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (j && j.access_token) return ptStoreAuthResult(j); ptSetSession(null); return null; })
+      .catch(function () { return null; });
+  }
+
+  function ptSbAuthedFetch(path, opts) {
+    return ptSbValidSession().then(function (s) {
+      if (!s) return null;
+      opts = opts || {}; opts.headers = opts.headers || {};
+      opts.headers.Authorization = 'Bearer ' + s.access_token;
+      return ptSbFetch(path, opts);
+    });
+  }
+
+  function ptCollectState() {
+    var o = {};
+    PT_SYNC_KEYS.forEach(function (k) { var v = localStorage.getItem(k); if (v != null) o[k] = v; });
+    return o;
+  }
+  function ptApplyState(data) {
+    if (!data) return;
+    PT_SYNC_KEYS.forEach(function (k) { if (data[k] != null) { try { localStorage.setItem(k, data[k]); } catch (e) {} } });
+  }
+
+  function ptSyncPull() {
+    var s = ptGetSession();
+    if (!s) return Promise.resolve(false);
+    return ptSbAuthedFetch('/rest/v1/pt_state?user_id=eq.' + encodeURIComponent(s.user_id) + '&select=data')
+      .then(function (r) { if (!r || !r.ok) return false; return r.json().then(function (rows) {
+        if (Array.isArray(rows) && rows.length && rows[0].data) { ptApplyState(rows[0].data); return true; }
+        return false;
+      }); }).catch(function () { return false; });
+  }
+
+  function ptSyncPush() {
+    var s = ptGetSession();
+    if (!s) return Promise.resolve(false);
+    var payload = { user_id: s.user_id, data: ptCollectState(), updated_at: new Date().toISOString() };
+    return ptSbAuthedFetch('/rest/v1/pt_state?on_conflict=user_id', {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: payload
+    }).then(function (r) { return !!(r && r.ok); }).catch(function () { return false; });
+  }
+
+  var ptPushTimer = null;
+  function ptSyncPushDebounced() {
+    if (!ptGetSession()) return;
+    clearTimeout(ptPushTimer);
+    ptPushTimer = setTimeout(function () { ptSyncPush(); }, 1500);
+  }
+
+  function ptSyncStatus(msg, kind) {
+    var el = document.getElementById('pt-sync-status');
+    if (!el) return;
+    el.className = 'pt-settings-status' + (kind ? ' ' + kind : '');
+    el.textContent = msg || '';
+  }
+
+  function ptRenderSyncUI() {
+    var box = document.getElementById('pt-sync');
+    if (!box) return;
+    if (!ptSyncConfigured()) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    var s = ptGetSession();
+    var so = document.getElementById('pt-sync-signedout');
+    var si = document.getElementById('pt-sync-signedin');
+    if (s) {
+      if (so) so.style.display = 'none';
+      if (si) si.style.display = 'block';
+      var who = document.getElementById('pt-sync-who'); if (who) who.textContent = s.email || 'your account';
+    } else {
+      if (so) so.style.display = 'block';
+      if (si) si.style.display = 'none';
+    }
+  }
+
+  // After a successful sign-in/up: pull remote if it exists (and refresh the
+  // whole UI from it), otherwise push this device's state up as the baseline.
+  function ptSyncAfterAuth() {
+    ptRenderSyncUI();
+    ptSyncStatus('Signed in. Syncing…', 'ok');
+    ptSyncPull().then(function (applied) {
+      if (applied) {
+        // Re-fill settings fields + re-render everything from synced state.
+        var k = document.getElementById('pt-api-key'); if (k) k.value = ptGet(PT_STORAGE.apiKey, '') || '';
+        var m = document.getElementById('pt-model'); if (m) m.value = ptGet(PT_STORAGE.model, PT_DEFAULT_MODEL) || PT_DEFAULT_MODEL;
+        try { ptRenderWatchChips('sponsor'); ptRenderWatchChips('competitor'); ptRenderWatchingPanel(); ptRenderSponsorRegistry(); ptRenderCompetitorPartners(); } catch (e) {}
+        ptMaybeAutoIntel();
+        ptSyncStatus('Synced from your account.', 'ok');
+      } else {
+        ptSyncPush().then(function (ok) { ptSyncStatus(ok ? 'This device is now your synced baseline.' : 'Signed in (could not save baseline yet).', ok ? 'ok' : 'err'); });
+      }
+    });
+  }
+
+  function ptDoSyncAuth(kind) {
+    var emailEl = document.getElementById('pt-sync-email');
+    var pwEl = document.getElementById('pt-sync-pw');
+    var email = (emailEl && emailEl.value || '').trim();
+    var pw = (pwEl && pwEl.value) || '';
+    if (!email || !pw) { ptSyncStatus('Enter email and password.', 'err'); return; }
+    if (kind === 'signup' && pw.length < 6) { ptSyncStatus('Password must be at least 6 characters.', 'err'); return; }
+    ptSyncStatus(kind === 'signup' ? 'Creating account…' : 'Signing in…');
+    ptSbAuth(kind, email, pw).then(function (res) {
+      var j = res.body || {};
+      if (!res.ok) {
+        ptSyncStatus(j.msg || j.error_description || j.error || j.message || ('Failed (HTTP ' + res.status + ')'), 'err');
+        return;
+      }
+      var sess = ptStoreAuthResult(j);
+      if (!sess) {
+        // Signup succeeded but no token => "Confirm email" is still ON in Supabase.
+        ptSyncStatus('Account made, but email confirmation is ON in Supabase — turn it off (Auth → Providers → Email), then Sign in.', 'err');
+        return;
+      }
+      if (pwEl) pwEl.value = '';
+      ptSyncAfterAuth();
+    }).catch(function (e) { ptSyncStatus('Network error: ' + (e && e.message ? e.message : 'unknown'), 'err'); });
+  }
+
+  function ptSyncSignOut() {
+    var s = ptGetSession();
+    if (s) { ptSbFetch('/auth/v1/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + s.access_token } }).catch(function () {}); }
+    ptSetSession(null);
+    ptRenderSyncUI();
+    ptSyncStatus('Signed out on this device.');
+  }
+
+  function ptInitSync() {
+    if (!ptSyncConfigured()) { ptRenderSyncUI(); return Promise.resolve(false); }
+    var si = document.getElementById('pt-sync-signin');
+    var su = document.getElementById('pt-sync-signup');
+    var out = document.getElementById('pt-sync-out');
+    var now = document.getElementById('pt-sync-now');
+    if (si) si.addEventListener('click', function () { ptDoSyncAuth('signin'); });
+    if (su) su.addEventListener('click', function () { ptDoSyncAuth('signup'); });
+    if (out) out.addEventListener('click', function (e) { e.preventDefault(); ptSyncSignOut(); });
+    if (now) now.addEventListener('click', function (e) { e.preventDefault(); ptSyncStatus('Syncing…'); ptSyncPush().then(function(){ return ptSyncPull(); }).then(function(){ ptSyncStatus('Synced.', 'ok'); }); });
+    ptRenderSyncUI();
+    // On load, if signed in, pull remote state before the rest of the app reads it.
+    if (ptGetSession()) return ptSyncPull();
+    return Promise.resolve(false);
+  }
+
   function ptMaybeAutoBrief() {
     var key = ptGet(PT_STORAGE.apiKey, '');
     var saved = ptGetJSON(PT_STORAGE.brief, null);
@@ -4118,6 +4335,7 @@
     if (s) { s.className = 'pt-settings-status'; s.textContent = ''; }
     ptRenderWatchChips('sponsor');
     ptRenderWatchChips('competitor');
+    ptRenderSyncUI();
     document.getElementById('pt-settings').classList.add('open');
     document.getElementById('pt-overlay').classList.add('open');
     document.getElementById('pt-settings').setAttribute('aria-hidden', 'false');
@@ -4137,6 +4355,7 @@
     s.textContent = 'Saved.';
     setTimeout(ptCloseSettings, 700);
     setTimeout(ptMaybeAutoIntel, 750);
+    ptSyncPushDebounced();
   }
   function ptTestKey() {
     var k = document.getElementById('pt-api-key').value.trim();
@@ -4637,7 +4856,12 @@
     ptRenderSponsorRegistry();
     ptRenderCompetitorPartners();
 
-    ptMaybeAutoIntel();
+    ptInitSync().then(function (pulled) {
+      if (pulled) {
+        try { ptRenderWatchingPanel(); ptRenderSponsorRegistry(); ptRenderCompetitorPartners(); } catch (e) {}
+      }
+      ptMaybeAutoIntel();
+    }).catch(function () { ptMaybeAutoIntel(); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
