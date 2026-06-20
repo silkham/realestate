@@ -2702,16 +2702,18 @@
     c.appendChild(el('div', { class: 'briefing-why' }, item.why));
     const meta = el('div', { class: 'briefing-meta' });
     if (item.date) meta.appendChild(el('span', { class: 'meta-text' }, item.date));
-    const isLive = item.tags && item.tags.indexOf('LIVE') !== -1;
-    if (!isLive) meta.appendChild(el('span', { class: 'tag', title: 'Curated background — may be dated. The live morning brief reflects today.' }, 'CURATED'));
-    if (item.tags) item.tags.forEach(function (t) {
+    const tagList = item.tags || [];
+    const isLiveItem = tagList.indexOf('LIVE') !== -1 || tagList.indexOf('UNVERIFIED') !== -1;
+    if (!isLiveItem) meta.appendChild(el('span', { class: 'tag', title: 'Curated background — may be dated. The live feed reflects today.' }, 'CURATED'));
+    tagList.forEach(function (t) {
       let cls = 'tag';
       if (t === 'BOSS' || t === 'WIN') cls = 'tag navy';
       else if (t === 'LEGAL' || t === 'TAX') cls = 'tag sage';
       else if (t === 'HOT' || t === 'TODAY') cls = 'tag crimson';
       else if (t === 'OPPORTUNITY') cls = 'tag gold';
       else if (t === 'LIVE') cls = 'tag crimson';
-      meta.appendChild(el('span', { class: cls }, t));
+      else if (t === 'UNVERIFIED') cls = 'tag gold';
+      meta.appendChild(el('span', { class: cls, title: t === 'UNVERIFIED' ? 'No source found — confirm before relying on it.' : '' }, t));
     });
     if (item.sources) item.sources.forEach(function (s) {
       meta.appendChild(el('a', { href: s.url, target: '_blank', rel: 'noopener' }, '↗ ' + s.name));
@@ -2749,7 +2751,8 @@
       const card = el('div', { class: 'intel-card' });
       const head = el('div', { class: 'intel-head' });
       head.appendChild(el('div', { class: 'intel-firm' + (m.isMac ? ' is-mac' : '') }, m.firm || m.stream || 'Item'));
-      head.appendChild(el('span', { class: isLive ? 'tag crimson' : 'tag', style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, isLive ? 'LIVE' : 'CURATED'));
+      var badge = !isLive ? { t: 'CURATED', c: 'tag' } : (m.unverified ? { t: 'UNVERIFIED', c: 'tag gold' } : { t: 'LIVE', c: 'tag crimson' });
+      head.appendChild(el('span', { class: badge.c, style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, badge.t));
       const metaParts = [];
       if (m.when) metaParts.push(m.when);
       if (m.sector) metaParts.push(m.sector);
@@ -2765,6 +2768,8 @@
         const a = el('a', { href: m.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, (m.sourceName || 'Read source') + ' →');
         linkRow.appendChild(a);
         body.appendChild(linkRow);
+      } else if (isLive && m.unverified) {
+        body.appendChild(el('div', { class: 'intel-source', style: 'color:var(--ink-mid);font-style:italic;' }, 'Unverified — no source found; confirm before relying on it.'));
       }
       card.appendChild(body);
       root.appendChild(card);
@@ -2828,7 +2833,8 @@
       const card = el('div', { class: 'intel-card' });
       const head = el('div', { class: 'intel-head' });
       head.appendChild(el('div', { class: 'intel-firm' }, d.headline));
-      head.appendChild(el('span', { class: wLive ? 'tag crimson' : 'tag', style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, wLive ? 'LIVE' : 'CURATED'));
+      var wb = !wLive ? { t: 'CURATED', c: 'tag' } : (d.unverified ? { t: 'UNVERIFIED', c: 'tag gold' } : { t: 'LIVE', c: 'tag crimson' });
+      head.appendChild(el('span', { class: wb.c, style: 'margin-left:8px;font-size:10px;letter-spacing:.06em;' }, wb.t));
       head.appendChild(el('div', { class: 'intel-meta' }, (d.date || '') + (d.tag ? ' · ' + d.tag : '')));
       card.appendChild(head);
       const body = el('div', { class: 'intel-body' });
@@ -2882,7 +2888,8 @@
       const card = el('div', { class: 'card col-6' });
       const head = el('div', { class: 'card-head' });
       head.appendChild(el('span', { class: 'label' }, '— SPONSOR'));
-      head.appendChild(el('span', { class: spLive ? 'tag crimson' : 'tag', style: 'font-size:10px;letter-spacing:.06em;' }, spLive ? 'LIVE' : 'CURATED'));
+      var sb = !spLive ? { t: 'CURATED', c: 'tag' } : (s.unverified ? { t: 'UNVERIFIED', c: 'tag gold' } : { t: 'LIVE', c: 'tag crimson' });
+      head.appendChild(el('span', { class: sb.c, style: 'font-size:10px;letter-spacing:.06em;' }, sb.t));
       card.appendChild(head);
       card.appendChild(el('div', { class: 'h-card' }, s.name));
       card.appendChild(el('p', { class: 'card-body', style: 'margin-top:10px;' }, s.stance));
@@ -2974,6 +2981,9 @@
       if (d.sourceUrl) {
         tk.appendChild(document.createTextNode(' '));
         tk.appendChild(el('a', { href: d.sourceUrl, target: '_blank', rel: 'noopener noreferrer', style: 'white-space:nowrap;' }, '↗ ' + (d.sourceName || 'source')));
+      } else if (d.unverified) {
+        tk.appendChild(document.createTextNode(' '));
+        tk.appendChild(el('span', { style: 'color:var(--ink-mid);font-style:italic;white-space:nowrap;' }, '· unverified'));
       }
       tr.appendChild(tk);
       tbody.appendChild(tr);
@@ -3920,10 +3930,11 @@
       '4. Debt markets / rates / macro ONLY where it materially affects real-estate financing. Keep regulatory (FCA/CMA/HMRC/BoE procedural) to AT MOST one item, and only if genuinely consequential — do NOT pad with regulatory notices.',
       '',
       'HARD RULES:',
-      '- CITE OR DROP: every item MUST include a real, working source URL (https) you actually found via web search, plus a real publication date. If you cannot cite it, DO NOT include it. Never invent sources, dates, deals, or quotes.',
+      '- SOURCING: Prefer items you can back with a real, working https source URL you actually found via web search, plus a real publication date. You MAY include important market intelligence you could not fully verify, BUT you MUST NOT invent a source or URL. For an unverified item, simply leave its source fields empty (omit sourceUrl / sources) — the app will label it UNVERIFIED for the reader. Never fabricate sources, URLs, dates, deals, or quotes.',
+      '- In the "brief" markdown, mark any claim you could not source by appending "(unverified)" after it; cite the rest inline with publication + date.',
       '- Prefer named, dated specifics ("Blackstone closed X on 18 June, per Reuters") over vague themes.',
       '- British English. Plain, useful, calm. Briefly gloss jargon (RIDEA, BREIT, CMBS, OPRE, NAV).',
-      '- Quality over quantity: on a quiet day return fewer items rather than filler. Better 4 sourced items than 10 padded ones.',
+      '- Quality over relevance-free filler: aim for genuinely useful items, sourced where possible, clearly flagged where not.',
       '',
       'OUTPUT: Return ONLY a single JSON object (no prose before or after, no markdown fences). Use this exact shape; omit any array you have nothing sourced for:',
       '{',
@@ -3957,27 +3968,36 @@
     if (typeof raw.brief === 'string' && raw.brief.trim()) out.brief = raw.brief.trim();
 
     if (Array.isArray(raw.top10)) {
-      out.top10 = raw.top10.filter(function (i) {
-        return i && i.headline && i.sources && i.sources[0] && ptHasUrl(i.sources[0].url);
-      }).map(function (i) {
-        var tags = Array.isArray(i.tags) ? i.tags.slice(0) : [];
-        if (tags.indexOf('LIVE') === -1) tags.unshift('LIVE');
-        return { headline: i.headline, why: i.why || '', date: i.date || '', tags: tags, sources: i.sources };
+      out.top10 = raw.top10.filter(function (i) { return i && i.headline; }).map(function (i) {
+        var cited = i.sources && i.sources[0] && ptHasUrl(i.sources[0].url);
+        var tags = Array.isArray(i.tags) ? i.tags.filter(function (t) { return t !== 'LIVE' && t !== 'UNVERIFIED'; }) : [];
+        tags.unshift(cited ? 'LIVE' : 'UNVERIFIED');
+        return { headline: i.headline, why: i.why || '', date: i.date || '', tags: tags,
+                 sources: cited ? i.sources : [], unverified: !cited };
       });
     }
-    var citedList = function (arr) {
-      return Array.isArray(arr) ? arr.filter(function (i) { return i && ptHasUrl(i.sourceUrl); }) : undefined;
+    // Keep all items; mark those without a valid source as unverified (don't drop).
+    var markList = function (arr) {
+      if (!Array.isArray(arr)) return undefined;
+      return arr.map(function (i) {
+        var cited = i && ptHasUrl(i.sourceUrl);
+        var out2 = {}; for (var k in i) out2[k] = i[k];
+        out2.unverified = !cited;
+        if (!cited) { out2.sourceUrl = ''; out2.sourceName = out2.sourceName || ''; }
+        return out2;
+      });
     };
-    out.competitors = citedList(raw.competitors);
-    out.sponsors    = citedList(raw.sponsors);
-    out.finance     = citedList(raw.finance);
-    out.weekly      = citedList(raw.weekly);
-    out.deals = Array.isArray(raw.deals) ? raw.deals.filter(function (d) { return d && ptHasUrl(d.sourceUrl); }).map(function (d) {
+    out.competitors = markList(raw.competitors);
+    out.sponsors    = markList(raw.sponsors);
+    out.finance     = markList(raw.finance);
+    out.weekly      = markList(raw.weekly);
+    out.deals = Array.isArray(raw.deals) ? raw.deals.map(function (d) {
+      var cited = ptHasUrl(d.sourceUrl);
       return {
         date: d.date || '', buyer: d.buyer || '', seller: d.seller || '—', sector: d.sector || '', geo: d.geo || '',
         value: d.value || 'n/d', takeaway: d.takeaway || '', mac: false,
         advisers: { buyer: (d.advisers && d.advisers.buyer) || 'n/d', seller: (d.advisers && d.advisers.seller) || '—' },
-        sourceName: d.sourceName, sourceUrl: d.sourceUrl
+        sourceName: cited ? d.sourceName : '', sourceUrl: cited ? d.sourceUrl : '', unverified: !cited
       };
     }) : undefined;
     // strip empty/undefined sections
