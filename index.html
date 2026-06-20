@@ -1735,10 +1735,13 @@
      CONFIG — multi-proxy CORS chain
      ============================================================ */
 
+  // Public CORS proxies, tried in order. allorigins proved most reliable in testing,
+  // so it leads; corsproxy uses its current ?url= form; thingproxy is a last resort.
   const PROXIES = [
-    { name: 'corsproxy', build: function (u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); } },
+    { name: 'allorigins',build: function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } },
+    { name: 'corsproxy', build: function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); } },
     { name: 'codetabs',  build: function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); } },
-    { name: 'allorigins',build: function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } }
+    { name: 'thingproxy',build: function (u) { return 'https://thingproxy.freeboard.io/fetch/' + u; } }
   ];
   const FETCH_TIMEOUT_MS = 9000;
 
@@ -1785,7 +1788,7 @@
      CURATED INTELLIGENCE
      ============================================================ */
 
-  const TODAY = new Date('2026-04-30');
+  const TODAY = new Date();
 
   // Markets — rates & gilts (curated, source-attributed)
   const RATES_DATA = [
@@ -2089,7 +2092,7 @@
     { headline:'BoE rate decision — markets split between hold and cut, watching CPI persistence',
       why:'MPC voted unanimously to hold at 3.75% in March after the Iran war pushed CPI projections back to 3-3.5%. Real-estate financing costs hinge on whether the Committee sees inflation as sticky enough to delay easing. Five-year SONIA swap currently 3.84%; 10-year gilt 4.42%.',
       sources:[{name:'Bank of England', url:'https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/monetary-policy-summary-and-minutes'}],
-      tags:['MARKET','RATES'], date:'Today' },
+      tags:['MARKET','RATES'], date:'19 Mar' },
     { headline:'Blackstone Q1 2026 — record $1.30tn AUM; BREIT raises $1.2bn (+44% YoY); RE Core+ +0.8%',
       why:'Real-estate AUM $315bn (slight harvesting drag). $7bn deployed in Q1 incl. US hyperscale data centre and Hawaii REIT take-private. Data-centre conviction now firm-wide. BREP opportunistic funds modestly down on life-sciences office and India.',
       sources:[{name:'Commercial Observer', url:'https://commercialobserver.com/2026/04/blackstone-first-quarter-2026-earnings/'}],
@@ -2685,7 +2688,7 @@
     list.innerHTML = '';
     let items = BRIEFING_BASE.slice(0);
     if (extras && extras.length) {
-      extras.slice(0, 2).forEach(function (x, i) { items.splice(i, 0, x); });
+      extras.slice(0, 4).forEach(function (x, i) { items.splice(i, 0, x); });
     }
     items.slice(0, 10).forEach(function (item, i) {
       list.appendChild(renderBriefingItem(item, i + 1));
@@ -2699,12 +2702,15 @@
     c.appendChild(el('div', { class: 'briefing-why' }, item.why));
     const meta = el('div', { class: 'briefing-meta' });
     if (item.date) meta.appendChild(el('span', { class: 'meta-text' }, item.date));
+    const isLive = item.tags && item.tags.indexOf('LIVE') !== -1;
+    if (!isLive) meta.appendChild(el('span', { class: 'tag', title: 'Curated background — may be dated. The live morning brief reflects today.' }, 'CURATED'));
     if (item.tags) item.tags.forEach(function (t) {
       let cls = 'tag';
       if (t === 'BOSS' || t === 'WIN') cls = 'tag navy';
       else if (t === 'LEGAL' || t === 'TAX') cls = 'tag sage';
       else if (t === 'HOT' || t === 'TODAY') cls = 'tag crimson';
       else if (t === 'OPPORTUNITY') cls = 'tag gold';
+      else if (t === 'LIVE') cls = 'tag crimson';
       meta.appendChild(el('span', { class: cls }, t));
     });
     if (item.sources) item.sources.forEach(function (s) {
@@ -2963,8 +2969,8 @@
       { title:'CMA: Welltower / Barchester / HC-One / Aria / Danforth — Phase 1', when:'Live',
         summary:'Investigation into £6.4bn UK senior-care consolidation. Latest derogations issued 27 March. Phase 2 referral and divestment remedies remain real possibilities.',
         url:'https://www.gov.uk/cma-cases/welltower-slash-multiple-care-homes-merger-inquiries' },
-      { title:'BoE rate decision — 30 April 2026', when:'Today 12:00',
-        summary:'MPC voted unanimously to hold at 3.75% on 19 March. Markets split on today: hold likely, hike possible if Iran-driven inflation persists.',
+      { title:'BoE Bank Rate held at 3.75% — last MPC decision 19 March', when:'19 Mar',
+        summary:'MPC voted unanimously to hold at 3.75% on 19 March. Watch the next scheduled decision for any move if inflation persists. (Curated reference — confirm the latest print against the Bank of England feed.)',
         url:'https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/monetary-policy-summary-and-minutes' },
       { title:'Tax: APR/BPR cap, BADR rate rise — 6 April 2026 in force', when:'6 Apr',
         summary:'£2.5m combined cap on 100% APR/BPR, then 50% above. BADR/IR rate up from 14% to 18%. Dividend rates +2%.',
@@ -3289,7 +3295,7 @@
       });
 
       const relevant = all.filter(isRelevant);
-      const briefingExtras = relevant.slice(0, 2).map(function (i) {
+      const briefingExtras = relevant.slice(0, 4).map(function (i) {
         return {
           headline: i.title,
           why: i.snippet || ('Live from ' + i.source + '. Tap source to read full item.'),
@@ -3605,7 +3611,14 @@
       '- She is smart and technically capable but still building commercial fluency. Treat her like a thoughtful colleague catching her up on the market — not like a partner showing off.',
       '- Plain English. Explain *what things mean*, not just what happened. If you use a term like RIDEA, BREIT, CMBS, OPRE, BREP, or NAV, gloss it briefly in the same sentence.',
       '- Calm, direct, useful. No corporate cheerleading, no "as I always say", no manufactured urgency.',
-      '- British English spelling.'
+      '- British English spelling.',
+      '',
+      'LIVE RESEARCH — this is the most important instruction:',
+      '- You have a web_search tool. USE IT. This brief must reflect what has actually happened in the last 24-72 hours, not generic background.',
+      '- Run a handful of focused searches for today\'s PCRE-relevant developments: BoE / rates / UK macro, competitor law-firm mandates and lateral moves, sponsor news (fundraising, deals, earnings, leadership), real-estate deal flow, and FCA/CMA/HMRC regulatory changes.',
+      '- Lead the brief with what your searches surface. Cite sources inline with publication and date, e.g. "(Reuters, ' + dateLine + ')".',
+      '- The curated context further below is BACKGROUND ONLY and may be weeks out of date — never present it as today\'s news. If a curated item conflicts with what you find via search, trust the search result and say what changed.',
+      '- If a search returns nothing material on a topic, simply move on — never invent, speculate, or pad.'
     ].concat(watchSection).concat([
       '',
       'Date: ' + dateLine,
@@ -3653,7 +3666,7 @@
   function ptCallClaude(apiKey, model, prompt, tools) {
     var requestBody = {
       model: model || PT_DEFAULT_MODEL,
-      max_tokens: 2500,
+      max_tokens: 4000,
       messages: [{ role: 'user', content: prompt }]
     };
     if (tools && tools.length) requestBody.tools = tools;
@@ -3726,7 +3739,10 @@
           '<p>Tap “Generate brief” to write today\'s. Cached for the day; auto-refreshes after 6am tomorrow.</p>' +
         '</div>';
     } else if (state === 'ready' && brief && brief.html) {
-      bodyHTML = brief.html;
+      var staleBanner = (brief && brief.staleNote)
+        ? '<div class="ai-stale-note" style="margin:0 0 14px;padding:10px 12px;border-left:3px solid #b8902f;background:rgba(184,144,47,0.09);border-radius:4px;font-size:13px;line-height:1.4;color:var(--ink-mid)">' + ptEscape(brief.staleNote) + '</div>'
+        : '';
+      bodyHTML = staleBanner + brief.html;
     }
 
     var key = ptGet(PT_STORAGE.apiKey, '');
@@ -3789,28 +3805,41 @@
 
     var prompt = ptBuildPrompt();
     var watched = ptGetWatchlist('sponsor').concat(ptGetWatchlist('competitor'));
-    // Attach the search tool when there are watched names to research.
-    var tools = (watched.length > 0) ? [{
+    // Web search is always on — the brief is built from live results each morning.
+    // Watched names raise the search budget so they can be researched too.
+    var tools = [{
       type: 'web_search_20250305',
       name: 'web_search',
-      max_uses: Math.min(5, watched.length + 1)
-    }] : null;
+      max_uses: Math.min(8, 5 + watched.length)
+    }];
 
     ptCallClaude(key, model, prompt, tools).then(function (resp) {
       if (!resp.ok) {
         var msg = (resp.body && resp.body.error && resp.body.error.message) ? resp.body.error.message : ('HTTP ' + resp.status);
-        ptRenderBrief('error', { error: msg });
+        ptBriefFailure(msg);
         return;
       }
       var text = ptExtractText(resp);
-      if (!text) { ptRenderBrief('error', { error: 'Empty response from Claude.' }); return; }
+      if (!text) { ptBriefFailure('Empty response from Claude.'); return; }
       var html = ptBriefMdToHTML(text);
       var saved = { date: ptYMD(new Date()), html: html, stamp: new Date().toISOString() };
       ptSetJSON(PT_STORAGE.brief, saved);
       ptRenderBrief('ready', saved);
     }).catch(function (e) {
-      ptRenderBrief('error', { error: 'Network error: ' + (e && e.message ? e.message : 'unknown') });
+      ptBriefFailure('Network error: ' + (e && e.message ? e.message : 'unknown'));
     });
+  }
+
+  // On a failed refresh, keep showing the last good brief (with a note) rather than
+  // stranding the reader on a bare error. Only show the error card when no cache exists.
+  function ptBriefFailure(msg) {
+    var cached = ptGetJSON(PT_STORAGE.brief, null);
+    if (cached && cached.html) {
+      cached.staleNote = 'Could not refresh the brief (' + msg + '). Showing the last brief from ' + ptShortStamp(cached.stamp) + '.';
+      ptRenderBrief('ready', cached);
+    } else {
+      ptRenderBrief('error', { error: msg });
+    }
   }
 
   function ptMaybeAutoBrief() {
