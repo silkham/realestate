@@ -2701,7 +2701,7 @@
     const tbl = document.getElementById(target);
     if (!tbl) return;
     tbl.innerHTML = '';
-    RATES_DATA.forEach(function (r) {
+    ptIntelOr('rates', RATES_DATA).forEach(function (r) {
       const tr = el('tr');
       tr.appendChild(el('td', { class: 'name' }, r.name));
       tr.appendChild(el('td', { class: 'val' }, r.val));
@@ -3100,7 +3100,7 @@
     const root = document.getElementById('talking-feed');
     if (!root) return;
     root.innerHTML = '';
-    TALKING_POINTS.forEach(function (tp) {
+    ptIntelOr('talkingPoints', TALKING_POINTS).forEach(function (tp) {
       const wrap = el('div', { class: 'talk-card' });
       wrap.appendChild(el('div', { class: 'talk-quote' }, tp.quote));
       const foot = el('div', { class: 'talk-foot' });
@@ -4009,13 +4009,17 @@
       '{',
       '  "brief": "<markdown morning brief: 4 sections with headers \\"## What moved overnight\\", \\"## What the market is talking about\\", \\"## Conversation primers\\", \\"## Worth knowing\\". Cite sources inline with dates. Lead with sponsor/competitor/deal news, not regulation.>",',
       '  "top10": [ { "headline": "...", "why": "1-2 sentence plain-English why-it-matters", "date": "e.g. 18 Jun", "tags": ["LIVE"], "sources": [ { "name": "Reuters", "url": "https://..." } ] } ],',
-      '  "competitors": [ { "firm": "Latham & Watkins", "when": "18 Jun", "sector": "RE finance", "deal": "what they did", "lead": "named partner if known", "take": "why it matters for her", "sourceName": "Legal Business", "sourceUrl": "https://..." } ],',
+      '  "competitors": [ { "firm": "Latham & Watkins", "when": "18 Jun", "sector": "RE finance", "deal": "their MOST RECENT or notable mandate/deal — named and dated", "detail": "what the firm is doing more broadly right now: building a bench, lateral hires, winning a client/sector, a strategic push", "lead": "named partner if known", "take": "why it matters for her", "sourceName": "Legal Business", "sourceUrl": "https://..." } ],',
       '  "sponsors": [ { "name": "Blackstone", "stance": "what they are doing now + why it matters", "sourceName": "Blackstone IR", "sourceUrl": "https://..." } ],',
-      '  "deals": [ { "date": "2026-06-18", "buyer": "...", "seller": "...", "sector": "Logistics", "geo": "UK", "value": "£500m", "takeaway": "why it matters", "sourceName": "PERE", "sourceUrl": "https://..." } ],',
+      '  "deals": [ { "date": "2026-06-18 (the completion/announcement date)", "buyer": "...", "seller": "...", "sector": "Logistics", "geo": "UK", "value": "£500m", "takeaway": "why it matters", "sourceName": "PERE", "sourceUrl": "https://..." } ],',
       '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
-      '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ]',
+      '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ],',
+      '  "rates": [ { "name": "BoE Bank Rate", "val": "3.75%", "delta": "current status e.g. held 19 Jun / cut 25bp", "tone": "up|down|flat" }, { "name": "10-Y gilt yield", "val": "4.42%", "delta": "+3bp w/w", "tone": "up" }, { "name": "SONIA 5Y swap", "val": "...", "delta": "...", "tone": "..." }, { "name": "CPI (YoY)", "val": "...", "delta": "...", "tone": "..." } ],',
+      '  "talkingPoints": [ { "quote": "a sharp, repeatable one-liner she could actually say to a partner or client THIS WEEK, grounded in the week\'s news", "context": "For: <who/when>. Source: <publication, date>." } ]',
       '}',
-      'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
+      'DEALS: prioritise the LATEST COMPLETED or just-announced transactions (last 1-2 weeks) found in PERE, React News, Real Estate Capital, and law-firm deal-announcement / press pages — include the completion date and who advised if stated.',
+      'RATES: give the current UK rates as of this week (BoE base rate, gilt, swap, CPI). These are factual figures — state the live numbers; a source is optional for these.',
+      'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly, ~4-6 rates, ~5 talking points — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
     ].join('\n');
   }
 
@@ -4069,6 +4073,11 @@
         sourceName: cited ? d.sourceName : '', sourceUrl: cited ? d.sourceUrl : '', unverified: !cited
       };
     }) : undefined;
+    // Rates are factual figures — keep without requiring a source.
+    out.rates = Array.isArray(raw.rates) ? raw.rates.filter(function (r) { return r && r.name && r.val; })
+      .map(function (r) { return { name: r.name, val: r.val, delta: r.delta || '', tone: r.tone || 'flat' }; }) : undefined;
+    out.talkingPoints = Array.isArray(raw.talkingPoints) ? raw.talkingPoints.filter(function (t) { return t && t.quote; })
+      .map(function (t) { return { quote: t.quote, context: t.context || '' }; }) : undefined;
     // strip empty/undefined sections
     Object.keys(out).forEach(function (k) { if (Array.isArray(out[k]) && !out[k].length) delete out[k]; });
     return out;
@@ -4085,6 +4094,9 @@
     try { renderFinance24h(); } catch (e) { console.error('renderFinance24h', e); }
     try { renderFinanceWeek(); } catch (e) { console.error('renderFinanceWeek', e); }
     try { renderDeals(); } catch (e) { console.error('renderDeals', e); }
+    try { renderRates('rates-table'); renderRates('rates-table-full'); } catch (e) { console.error('renderRates', e); }
+    try { renderTalking(); } catch (e) { console.error('renderTalking', e); }
+    try { if (typeof ptRenderCompetitorPartners === 'function') ptRenderCompetitorPartners(); } catch (e) { console.error('ptRenderCompetitorPartners', e); }
   }
 
   function ptRunDailyIntel() {
@@ -4804,6 +4816,18 @@
     if (!host) return;
     host.innerHTML = '';
 
+    // Live competitor intel (from the weekly pull) to surface per-firm "latest activity".
+    var liveIntel = ptGetIntel();
+    var liveComp = (liveIntel && Array.isArray(liveIntel.competitors)) ? liveIntel.competitors : [];
+    var findLive = function (firm) {
+      var lf = (firm || '').toLowerCase();
+      for (var i = 0; i < liveComp.length; i++) {
+        var cf = (liveComp[i].firm || '').toLowerCase();
+        if (cf && (cf.indexOf(lf) !== -1 || lf.indexOf(cf) !== -1)) return liveComp[i];
+      }
+      return null;
+    };
+
     // First: watchlist competitors not in the hard-coded data
     var watched = ptGetWatchlist('competitor');
     var existingNames = COMPETITOR_PARTNERS.map(function (f) { return f.firm.toLowerCase(); });
@@ -4848,6 +4872,26 @@
       bench.className = 'cp-partners';
       bench.innerHTML = ptInline(f.bench);
       card.appendChild(bench);
+
+      // Live "latest activity" from the weekly pull, if we have it for this firm.
+      var lc = findLive(f.firm);
+      if (lc && (lc.deal || lc.detail)) {
+        var liveDiv = document.createElement('div');
+        liveDiv.className = 'cp-movement flag';
+        var ll = document.createElement('strong');
+        ll.textContent = 'Latest · LIVE' + (lc.when ? ' · ' + lc.when : '');
+        liveDiv.appendChild(ll);
+        var lb = document.createElement('span');
+        lb.innerHTML = ptInline((lc.deal || '') + (lc.detail ? ' — ' + lc.detail : ''));
+        if (lc.sourceUrl) {
+          var la = document.createElement('a');
+          la.href = lc.sourceUrl; la.target = '_blank'; la.rel = 'noopener noreferrer';
+          la.style.color = 'var(--ink-mid)'; la.textContent = ' · ' + (lc.sourceName || 'source') + ' →';
+          lb.appendChild(la);
+        }
+        liveDiv.appendChild(lb);
+        card.appendChild(liveDiv);
+      }
 
       if (f.moves && f.moves.length) {
         f.moves.forEach(function (m) {
