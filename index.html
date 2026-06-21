@@ -2449,8 +2449,8 @@
   ];
 
   const FUTURE_PARTNER_NOTES = [
-    { headline:'Today\'s BoE decision is your client-call ice-breaker — own it.',
-      body:'Whatever the MPC does at noon, every property-fund client on your call list will be talking about it. Have a position by 11:55. "CPI persistence remains the binding constraint" is a partner sentence. "I think they\'ll cut" is an associate sentence. The difference is whether you sound like you understand what monetary policy means for real-estate financing — not whether you\'re right.' },
+    { headline:'A BoE rate-decision day is your client-call ice-breaker — own it.',
+      body:'On any MPC decision day, every property-fund client on your call list will be talking about it. Have a position before it lands. "CPI persistence remains the binding constraint" is a partner sentence. "I think they\'ll cut" is an associate sentence. The difference is whether you sound like you understand what monetary policy means for real-estate financing — not whether you\'re right.' },
     { headline:'The Welltower CMA case is the most under-priced commercial opportunity in the market.',
       body:'Phase 2 referral and divestment remedies are a real possibility. Sub-scale buyers (Octopus, Target, Civitas) will need transaction counsel within hours of the CMA announcing remedies. Reaching out now — before the announcement — is exactly the kind of pre-positioning that distinguishes future partners from senior associates.' },
     { headline:'Operational real estate is your differentiator, not your specialism.',
@@ -2714,7 +2714,7 @@
     const tbl = document.getElementById('yields-table');
     if (!tbl) return;
     tbl.innerHTML = '';
-    YIELDS_DATA.forEach(function (y) {
+    ptIntelOr('yields', YIELDS_DATA).forEach(function (y) {
       const tr = el('tr');
       tr.appendChild(el('td', { class: 'y-name' }, y.name));
       tr.appendChild(el('td', { class: 'y-val' }, y.val));
@@ -2781,12 +2781,12 @@
   }
 
   function renderPartnerCards() {
-    const vh = "Today's read: the BoE decision will reshape financing assumptions on every hotel and JV in her live pipeline. After Pandox/Dalata closed, her client conversations are likely to centre on whether bid-ask spreads stay narrow or widen on a hawkish surprise. Worth flagging the Brookfield/Fidere precedent as evidence the market has reopened — and the Blackstone Q1 BREIT raise as proof that capital is back into the wealth channel.";
-    const ah = "Today's read: the CMA derogations on Welltower (27 March) plus the L&G Stanley Studios closing (27 April) make this a healthcare-RE-and-PBSA week. Plus, KREF\\'s pivot — out of office, into UK industrial — is the listed-credit version of the OPRE thesis he\\'s been publishing. Worth raising data-centre / infra crossover at the next supervision.";
+    const vh = "Standing themes: the rate path shapes financing assumptions across her hotel and JV pipeline; since the Pandox/Dalata close, client talk has centred on whether bid-ask spreads hold; the Brookfield/Fidere deal is her reference point for the market reopening, and Blackstone's BREIT raise for capital returning to the wealth channel.";
+    const ah = "Standing themes: the Welltower / CMA healthcare-RE situation and PBSA flows; KREF's pivot out of office into UK industrial as the listed-credit read on the OPRE thesis; and data-centre / infrastructure crossover worth raising at supervision.";
     const vhEl = document.getElementById('vh-take');
     const ahEl = document.getElementById('ah-take');
-    if (vhEl) vhEl.innerHTML = '<span class="partner-take-label">— Today\'s read</span>' + vh;
-    if (ahEl) ahEl.innerHTML = '<span class="partner-take-label">— Today\'s read</span>' + ah;
+    if (vhEl) vhEl.innerHTML = '<span class="partner-take-label">— Strategic read · reference</span>' + vh;
+    if (ahEl) ahEl.innerHTML = '<span class="partner-take-label">— Strategic read · reference</span>' + ah;
     const fp = FUTURE_PARTNER_NOTES[Math.floor(Math.random() * FUTURE_PARTNER_NOTES.length)];
     const fpH = document.getElementById('fp-headline');
     const fpB = document.getElementById('fp-body');
@@ -2863,7 +2863,7 @@
     ['Firm','Mandates (30d)','Most recent','Notes'].forEach(function (h) { trh.appendChild(el('th', null, h)); });
     thead.appendChild(trh); tbl.appendChild(thead);
     const tbody = el('tbody');
-    SCOREBOARD.forEach(function (r) {
+    ptIntelOr('scoreboard', SCOREBOARD).forEach(function (r) {
       const tr = el('tr', { class: r.mac ? 'is-mac' : '' });
       tr.appendChild(el('td', { class: 'firm' + (r.mac ? ' mac' : '') }, r.firm));
       tr.appendChild(el('td', { class: 'count' }, String(r.count)));
@@ -2910,7 +2910,7 @@
     const sg = document.getElementById('sectors-grid');
     if (!sg) return;
     sg.innerHTML = '';
-    SECTORS.forEach(function (s) {
+    ptIntelOr('sectors', SECTORS).forEach(function (s) {
       const tagClass = s.heat.toLowerCase().indexOf('hot') !== -1 ? 'tag crimson' :
                        s.heat.toLowerCase().indexOf('steady') !== -1 ? 'tag sage' :
                        s.heat.toLowerCase().indexOf('selective') !== -1 ? 'tag gold' : 'tag';
@@ -2956,6 +2956,7 @@
     const r = document.getElementById('radar-grid');
     if (!r) return;
     r.innerHTML = '';
+    r.appendChild(el('div', { class: 'card-body', style: 'grid-column:1/-1;margin-bottom:6px;color:var(--ink-mid);font-style:italic;' }, 'Curated forward-looking watchlist — reference, not a live feed.'));
     RADAR.forEach(function (item) {
       const card = el('div', { class: 'card col-6' });
       const head = el('div', { class: 'card-head' });
@@ -3120,6 +3121,7 @@
     const root = document.getElementById('partner-mode');
     if (!root) return;
     root.innerHTML = '';
+    root.appendChild(el('p', { class: 'card-body', style: 'margin-bottom:12px;color:var(--ink-mid);font-style:italic;' }, 'Curated playbook — strategic prompts for reference, not live news.'));
     PARTNER_MODE.forEach(function (p, i) {
       const card = el('div', { class: 'card', style: 'margin-bottom:14px;' });
       const head = el('div', { class: 'card-head' });
@@ -4015,11 +4017,15 @@
       '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "rates": [ { "name": "BoE Bank Rate", "val": "3.75%", "delta": "current status e.g. held 19 Jun / cut 25bp", "tone": "up|down|flat" }, { "name": "10-Y gilt yield", "val": "4.42%", "delta": "+3bp w/w", "tone": "up" }, { "name": "SONIA 5Y swap", "val": "...", "delta": "...", "tone": "..." }, { "name": "CPI (YoY)", "val": "...", "delta": "...", "tone": "..." } ],',
-      '  "talkingPoints": [ { "quote": "a sharp, repeatable one-liner she could actually say to a partner or client THIS WEEK, grounded in the week\'s news", "context": "For: <who/when>. Source: <publication, date>." } ]',
+      '  "talkingPoints": [ { "quote": "a sharp, repeatable one-liner she could actually say to a partner or client THIS WEEK, grounded in the week\'s news", "context": "For: <who/when>. Source: <publication, date>." } ],',
+      '  "yields": [ { "name": "Prime UK logistics", "val": "4.75%", "delta": "stable / movement note", "tone": "up|down|flat" }, { "name": "Prime City office (London)", "val": "...", "delta": "...", "tone": "..." }, { "name": "Prime UK BTR", "val": "...", "delta": "...", "tone": "..." } ],',
+      '  "sectors": [ { "name": "Logistics", "heat": "Hot|Steady|Selective|Cooling", "note": "1-2 sentence current read on the sector this week", "sourceName": "CBRE", "sourceUrl": "https://..." } ],',
+      '  "scoreboard": [ { "firm": "Kirkland & Ellis", "count": 0, "last": "most recent notable mandate", "notes": "one-line read", "mac": false } ]',
       '}',
       'DEALS: prioritise the LATEST COMPLETED or just-announced transactions (last 1-2 weeks). Law firms publish the deals they advised on — search firm newsrooms / deal-announcement pages DIRECTLY, especially Macfarlanes\' own (macfarlanes.com/what-we-think and macfarlanes.com/news) for deals it advised, and the tracked competitor firms\' press pages (Latham, Kirkland, Simpson Thacher, Freshfields, Clifford Chance, Linklaters, A&O Shearman, Goodwin). Also PERE, React News, Real Estate Capital. Capture the completion/announcement date, buyer/seller, value, and which law firm(s) advised each side (advisers field).',
-      'RATES: give the current UK rates as of this week (BoE base rate, gilt, swap, CPI). These are factual figures — state the live numbers; a source is optional for these.',
-      'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly, ~4-6 rates, ~5 talking points — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
+      'RATES / YIELDS: give the current UK figures as of this week (BoE base rate, gilt, swap, CPI; and prime property yields by sector). Factual figures — state the live numbers; a source is optional for rates/yields.',
+      'SECTORS: a current one-line read + heat level per major sector. SCOREBOARD: rough recent mandate activity by competitor firm (count over the last ~30 days, their most recent notable mandate).',
+      'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly, ~4-6 rates, ~6-8 yields, ~6 sectors, ~10 scoreboard firms, ~5 talking points — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
     ].join('\n');
   }
 
@@ -4078,6 +4084,12 @@
       .map(function (r) { return { name: r.name, val: r.val, delta: r.delta || '', tone: r.tone || 'flat' }; }) : undefined;
     out.talkingPoints = Array.isArray(raw.talkingPoints) ? raw.talkingPoints.filter(function (t) { return t && t.quote; })
       .map(function (t) { return { quote: t.quote, context: t.context || '' }; }) : undefined;
+    out.yields = Array.isArray(raw.yields) ? raw.yields.filter(function (y) { return y && y.name && y.val; })
+      .map(function (y) { return { name: y.name, val: y.val, delta: y.delta || '', tone: y.tone || 'flat' }; }) : undefined;
+    out.sectors = Array.isArray(raw.sectors) ? raw.sectors.filter(function (s) { return s && s.name && s.note; })
+      .map(function (s) { return { name: s.name, heat: s.heat || 'Steady', note: s.note, sourceName: s.sourceName || '', sourceUrl: ptHasUrl(s.sourceUrl) ? s.sourceUrl : '' }; }) : undefined;
+    out.scoreboard = Array.isArray(raw.scoreboard) ? raw.scoreboard.filter(function (r) { return r && r.firm; })
+      .map(function (r) { return { firm: r.firm, count: r.count || 0, last: r.last || '', notes: r.notes || '', mac: /macfarlanes/i.test(r.firm) }; }) : undefined;
     // strip empty/undefined sections
     Object.keys(out).forEach(function (k) { if (Array.isArray(out[k]) && !out[k].length) delete out[k]; });
     return out;
@@ -4098,6 +4110,9 @@
     try { renderTalking(); } catch (e) { console.error('renderTalking', e); }
     try { if (typeof ptRenderCompetitorPartners === 'function') ptRenderCompetitorPartners(); } catch (e) { console.error('ptRenderCompetitorPartners', e); }
     try { if (typeof ptRenderSponsorRegistry === 'function') ptRenderSponsorRegistry(); } catch (e) { console.error('ptRenderSponsorRegistry', e); }
+    try { renderYields(); } catch (e) { console.error('renderYields', e); }
+    try { renderSectors(); } catch (e) { console.error('renderSectors', e); }
+    try { renderScoreboard(); } catch (e) { console.error('renderScoreboard', e); }
   }
 
   function ptRunDailyIntel() {
