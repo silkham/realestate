@@ -3813,7 +3813,7 @@
     if (state === 'loading') {
       bodyHTML =
         '<div class="ai-sec">' +
-          '<div class="ai-sec-label">Generating today\'s brief…</div>' +
+          '<div class="ai-sec-label">Running full sync — pulling this week\'s intelligence across every tab…</div>' +
           '<div class="ai-skel l1"></div>' +
           '<div class="ai-skel l2"></div>' +
           '<div class="ai-skel l3"></div>' +
@@ -3831,7 +3831,7 @@
       bodyHTML =
         '<div class="ai-sec">' +
           '<div class="ai-sec-label">No brief yet</div>' +
-          '<p>Tap “Generate brief” to pull this week\'s intelligence. Cached for the week; auto-refreshes Monday from 6am.</p>' +
+          '<p>Tap “Run full sync” to pull this week\'s intelligence across every tab. Cached for the week; auto-refreshes Monday from 6am.</p>' +
         '</div>';
     } else if (state === 'ready' && brief && brief.html) {
       var staleBanner = (brief && brief.staleNote)
@@ -3841,7 +3841,7 @@
     }
 
     var key = ptGet(PT_STORAGE.apiKey, '');
-    var btnLabel = (state === 'ready') ? 'Refresh brief' : 'Generate brief';
+    var btnLabel = (state === 'ready') ? 'Full resync' : 'Run full sync';
     var disabled = !key ? 'disabled' : '';
     var stamp = (brief && brief.stamp) ? 'Generated ' + ptShortStamp(brief.stamp) : new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
     var copyBtn = (state === 'ready') ? '<button class="ai-btn ghost" id="ai-copy-brief">Copy text</button>' : '';
@@ -4035,9 +4035,46 @@
     var t = String(text);
     var fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
     if (fence) t = fence[1];
-    var start = t.indexOf('{'), end = t.lastIndexOf('}');
-    if (start < 0 || end <= start) return null;
-    try { return JSON.parse(t.slice(start, end + 1)); } catch (e) { return null; }
+    var start = t.indexOf('{');
+    if (start < 0) return null;
+    t = t.slice(start);
+    var end = t.lastIndexOf('}');
+    var tries = [];
+    if (end > 0) tries.push(t.slice(0, end + 1)); // clean slice to last brace
+    tries.push(t);                                // full remainder (for repair)
+    for (var i = 0; i < tries.length; i++) {
+      var c = tries[i].replace(/,\s*([}\]])/g, '$1'); // drop trailing commas
+      try { return JSON.parse(c); } catch (e) {}
+      try { return JSON.parse(ptRepairJson(c)); } catch (e2) {} // salvage truncated JSON
+    }
+    return null;
+  }
+
+  // Best-effort repair of a truncated JSON object: trim any incomplete trailing
+  // token, then close all still-open strings/brackets. Lets a cut-off pull still
+  // yield the sections that DID complete instead of blanking everything.
+  function ptRepairJson(str) {
+    // Trim to the last fully-closed object/array (dropping any dangling key/value
+    // left by truncation), then close the still-open brackets.
+    var inStr = false, esc = false, lastSafe = -1, j;
+    for (j = 0; j < str.length; j++) {
+      var ch = str[j];
+      if (inStr) { if (esc) { esc = false; } else if (ch === '\\') { esc = true; } else if (ch === '"') { inStr = false; } continue; }
+      if (ch === '"') inStr = true;
+      else if (ch === '}' || ch === ']') lastSafe = j; // only a closed container is a safe cut
+    }
+    var trimmed = (lastSafe > 0 ? str.slice(0, lastSafe + 1) : str).replace(/,\s*$/, '');
+    var open = []; inStr = false; esc = false;
+    for (j = 0; j < trimmed.length; j++) {
+      var c2 = trimmed[j];
+      if (inStr) { if (esc) { esc = false; } else if (c2 === '\\') { esc = true; } else if (c2 === '"') { inStr = false; } continue; }
+      if (c2 === '"') inStr = true;
+      else if (c2 === '{' || c2 === '[') open.push(c2);
+      else if (c2 === '}' || c2 === ']') open.pop();
+    }
+    var closers = '';
+    for (var k = open.length - 1; k >= 0; k--) closers += (open[k] === '{' ? '}' : ']');
+    return trimmed + closers;
   }
 
   // Enforce cite-or-drop and normalise shapes. Returns cleaned data.
@@ -4127,7 +4164,7 @@
     // Weekly deep pull (Tier 2+): search broadly across sponsors, competitors, deals, macro.
     var tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(12, 8 + watched.length) }];
 
-    ptCallClaude(key, model, prompt, tools, 8000).then(function (resp) {
+    ptCallClaude(key, model, prompt, tools, 16000).then(function (resp) {
       if (!resp.ok) {
         var msg = (resp.body && resp.body.error && resp.body.error.message) ? resp.body.error.message : ('HTTP ' + resp.status);
         if (resp.status === 429 || /rate limit/i.test(msg)) {
