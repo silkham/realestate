@@ -1768,7 +1768,7 @@
   // Live feeds. `direct: true` = CORS-enabled at source.
   const FEEDS = [
     { key: 'gov',  label: 'GOV.UK', direct: true, parser: 'gov',
-      url: 'https://www.gov.uk/api/search.json?count=20&order=-public_timestamp&filter_organisations[]=competition-and-markets-authority&filter_organisations[]=hm-treasury&filter_organisations[]=ministry-of-housing-communities-and-local-government&filter_organisations[]=hm-revenue-customs',
+      url: 'https://www.gov.uk/api/search.json?count=20&order=-public_timestamp&fields[]=content_store_document_type&filter_organisations[]=competition-and-markets-authority&filter_organisations[]=hm-treasury&filter_organisations[]=ministry-of-housing-communities-and-local-government&filter_organisations[]=hm-revenue-customs',
       tag: 'legal' },
     { key: 'fca',  label: 'FCA', parser: 'rss', tag: 'legal',
       url: 'https://www.fca.org.uk/news/rss.xml' },
@@ -1777,7 +1777,16 @@
     { key: 'bbc',  label: 'BBC Business', parser: 'rss', tag: 'market',
       url: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
     { key: 'pweek',label: 'Property Week', parser: 'rss', tag: 'market',
-      url: 'https://www.propertyweek.com/Rss' }
+      url: 'https://www.propertyweek.com/news/feed' },
+    // Real-estate deal flow + competitor (law-firm) intelligence — free RSS.
+    { key: 'eg',   label: 'Estates Gazette', parser: 'rss', tag: 'market',
+      url: 'https://www.estatesgazette.co.uk/feed/' },
+    { key: 'pwire',label: 'PropertyWire', parser: 'rss', tag: 'market',
+      url: 'https://www.propertywire.com/category/commercial-property-news/feed/' },
+    { key: 'lawyer',label: 'The Lawyer', parser: 'rss', tag: 'competitor',
+      url: 'https://www.thelawyer.com/feed/' },
+    { key: 'legalbiz',label: 'Legal Business', parser: 'rss', tag: 'competitor',
+      url: 'https://www.legalbusiness.co.uk/feed/' }
   ];
 
   // Frankfurter — direct CORS-enabled, free, ECB-backed FX rates
@@ -2543,10 +2552,19 @@
      PARSERS
      ============================================================ */
 
+  // GOV.UK document types that are procedural noise (how-to guidance, forms,
+  // manuals) rather than market-relevant policy/news. Drop these.
+  var GOV_NOISE_TYPES = { guidance:1, detailed_guide:1, form:1, manual:1, hmrc_manual:1,
+    notice:1, statutory_guidance:1, regulation:1, answer:1, guide:1, html_publication:1,
+    calculator:1, smart_answer:1, step_by_step_nav:1, transaction:1, finder:1, map:1 };
   function parseGov(jsonText, feed) {
     try {
       const data = JSON.parse(jsonText);
-      return (data.results || []).slice(0, 12).map(function (r) {
+      return (data.results || []).filter(function (r) {
+        var t = r.content_store_document_type;
+        if (Array.isArray(t)) t = t[0];
+        return !(t && GOV_NOISE_TYPES[t]);
+      }).slice(0, 12).map(function (r) {
         return {
           title: r.title,
           url: 'https://www.gov.uk' + r.link,
@@ -2603,13 +2621,21 @@
     } catch (e) { return null; }
   }
 
+  // Procedural / how-to noise — drop regardless of source (catches HMRC form-filling
+  // guidance and similar that slips past the GOV.UK document-type filter).
+  var NOISE_RE = /\b(how to|fill in|fill out|complete the form|complete form|apply for|renew your|pay your|claim (a|the|back)|check if you|tell hmrc|sign in|user guide|step by step|step-by-step|cookies on|terms and conditions|register for)\b/i;
   function isRelevant(item) {
-    const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
+    const title = item.title || '';
+    if (NOISE_RE.test(title)) return false;
+    const text = (title + ' ' + (item.snippet || '')).toLowerCase();
     const keywords = ['real estate','property','logistics','industrial','warehouse','data centre','data center',
       'hotel','hospitality','student','pbsa','btr','build to rent','living sector','multifamily','private equity',
       'kkr','blackstone','brookfield','apollo','welltower','pandox','aermont','hayfin','macfarlanes','fund','sponsor',
       'cma','fca','hmrc','merger','acquisition','rate','mpc','inflation','planning','tax','carried interest','esg',
-      'reit','pere','recapitalisation','sale and leaseback','joint venture','distressed','refinancing','cmbs'];
+      'reit','pere','recapitalisation','sale and leaseback','joint venture','distressed','refinancing','cmbs',
+      // legal-market signals (competitor moves relevant to her market)
+      'lateral','partner hire','real estate finance','funds partner','private capital','fund formation',
+      'latham','kirkland','freshfields','clifford chance','linklaters','a&o shearman','simpson thacher','goodwin'];
     return keywords.some(function (k) { return text.indexOf(k) !== -1; });
   }
 
@@ -2703,7 +2729,12 @@
     document.getElementById('briefing-time').textContent = fmtDate(new Date(), { hour:'2-digit', minute:'2-digit' });
   }
 
+  // Live RSS items spliced into the Top 10; kept module-level so re-renders
+  // (e.g. ptRenderAllPanels) don't drop them when called without args.
+  var PT_LIVE_EXTRAS = [];
   function renderBriefing(extras) {
+    if (extras && extras.length) PT_LIVE_EXTRAS = extras;
+    extras = extras || PT_LIVE_EXTRAS;
     const list = document.getElementById('briefing-list');
     list.innerHTML = '';
     let items = ptIntelOr('top10', BRIEFING_BASE).slice(0);
@@ -3344,6 +3375,10 @@
         }
       });
 
+      // Newest first across every feed (was effectively feed order).
+      var feedTime = function (i) { var t = Date.parse(i && i.date); return isFinite(t) ? t : 0; };
+      all.sort(function (a, b) { return feedTime(b) - feedTime(a); });
+
       const relevant = all.filter(isRelevant);
       const briefingExtras = relevant.slice(0, 4).map(function (i) {
         return {
@@ -3955,7 +3990,13 @@
       '1. What her tracked SPONSORS / clients are doing — fundraising, deals, acquisitions/disposals, earnings, strategy, leadership. Sponsors she tracks: ' + (names.sponsors.join(', ') || '(none set)') + '.',
       '2. What COMPETITOR law firms are doing — mandates won, lateral partner hires, promotions, notable instructions on real-estate / PE / funds deals. Firms she tracks: ' + (names.competitors.join(', ') || '(none set)') + '.',
       '3. Real-estate / private-capital DEAL FLOW generally — M&A, take-privates, big financings, CMBS, fund closes, sector moves (logistics, living/BTR/PBSA, hotels/OPRE, healthcare RE, data centres, offices).',
-      '4. Debt markets / rates / macro ONLY where it materially affects real-estate financing. Keep regulatory (FCA/CMA/HMRC/BoE procedural) to AT MOST one item, and only if genuinely consequential — do NOT pad with regulatory notices.',
+      '4. Debt markets / rates / macro ONLY where it materially affects real-estate financing. Tax/regulatory: include only genuinely consequential CHANGES that affect funds, sponsors, carried interest, or property (e.g. APR/BPR, carried-interest treatment, SDLT, the Budget) — NOT procedural HMRC/FCA guidance, form-filling, or "how to" notices. At most one such item.',
+      '',
+      'WHERE TO LOOK (prioritise these — surface their headlines, press releases, and secondary coverage even where the full article is paywalled):',
+      '- Competitor law firms / lateral moves: The Lawyer, Legal Business, Law.com International, Global Legal Post, Chambers/Legal 500 commentary.',
+      '- Real-estate deal flow & sponsors: React News, PERE, Real Estate Capital Europe, Estates Gazette, IPE Real Assets, Bisnow, CoStar, PropertyWire, Private Equity International.',
+      '- Sponsor primary sources: investor-relations / newsroom pages and earnings of the tracked sponsors; SEC EDGAR filings for US sponsors; London Stock Exchange RNS / Investegate for listed UK real-estate companies (Segro, British Land, Land Securities, UNITE, Tritax).',
+      '- Macro / yields: Bank of England, ONS (CPI/GDP), and prime-yield research from Savills, JLL, CBRE, Knight Frank.',
       '',
       'HARD RULES:',
       '- SOURCING: Prefer items you can back with a real, working https source URL you actually found via web search, plus a real publication date. You MAY include important market intelligence you could not fully verify, BUT you MUST NOT invent a source or URL. For an unverified item, simply leave its source fields empty (omit sourceUrl / sources) — the app will label it UNVERIFIED for the reader. Never fabricate sources, URLs, dates, deals, or quotes.',
