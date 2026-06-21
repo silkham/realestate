@@ -4011,13 +4011,13 @@
       '  "top10": [ { "headline": "...", "why": "1-2 sentence plain-English why-it-matters", "date": "e.g. 18 Jun", "tags": ["LIVE"], "sources": [ { "name": "Reuters", "url": "https://..." } ] } ],',
       '  "competitors": [ { "firm": "Latham & Watkins", "when": "18 Jun", "sector": "RE finance", "deal": "their MOST RECENT or notable mandate/deal — named and dated", "detail": "what the firm is doing more broadly right now: building a bench, lateral hires, winning a client/sector, a strategic push", "lead": "named partner if known", "take": "why it matters for her", "sourceName": "Legal Business", "sourceUrl": "https://..." } ],',
       '  "sponsors": [ { "name": "Blackstone", "stance": "what they are doing now + why it matters", "sourceName": "Blackstone IR", "sourceUrl": "https://..." } ],',
-      '  "deals": [ { "date": "2026-06-18 (the completion/announcement date)", "buyer": "...", "seller": "...", "sector": "Logistics", "geo": "UK", "value": "£500m", "takeaway": "why it matters", "sourceName": "PERE", "sourceUrl": "https://..." } ],',
+      '  "deals": [ { "date": "2026-06-18 (completion/announcement date)", "buyer": "...", "seller": "...", "sector": "Logistics", "geo": "UK", "value": "£500m", "advisers": { "buyer": "advising law firm if stated", "seller": "advising law firm if stated" }, "takeaway": "why it matters", "sourceName": "PERE", "sourceUrl": "https://..." } ],',
       '  "finance": [ { "stream": "Sponsor earnings|Debt markets|Fund flows", "firm": "...", "headline": "...", "detail": "...", "take": "...", "when": "18 Jun", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "weekly": [ { "headline": "...", "date": "18 Jun", "tag": "DEAL|LATERAL|FUND", "body": "what happened", "take": "why it matters", "sourceName": "...", "sourceUrl": "https://..." } ],',
       '  "rates": [ { "name": "BoE Bank Rate", "val": "3.75%", "delta": "current status e.g. held 19 Jun / cut 25bp", "tone": "up|down|flat" }, { "name": "10-Y gilt yield", "val": "4.42%", "delta": "+3bp w/w", "tone": "up" }, { "name": "SONIA 5Y swap", "val": "...", "delta": "...", "tone": "..." }, { "name": "CPI (YoY)", "val": "...", "delta": "...", "tone": "..." } ],',
       '  "talkingPoints": [ { "quote": "a sharp, repeatable one-liner she could actually say to a partner or client THIS WEEK, grounded in the week\'s news", "context": "For: <who/when>. Source: <publication, date>." } ]',
       '}',
-      'DEALS: prioritise the LATEST COMPLETED or just-announced transactions (last 1-2 weeks) found in PERE, React News, Real Estate Capital, and law-firm deal-announcement / press pages — include the completion date and who advised if stated.',
+      'DEALS: prioritise the LATEST COMPLETED or just-announced transactions (last 1-2 weeks). Law firms publish the deals they advised on — search firm newsrooms / deal-announcement pages DIRECTLY, especially Macfarlanes\' own (macfarlanes.com/what-we-think and macfarlanes.com/news) for deals it advised, and the tracked competitor firms\' press pages (Latham, Kirkland, Simpson Thacher, Freshfields, Clifford Chance, Linklaters, A&O Shearman, Goodwin). Also PERE, React News, Real Estate Capital. Capture the completion/announcement date, buyer/seller, value, and which law firm(s) advised each side (advisers field).',
       'RATES: give the current UK rates as of this week (BoE base rate, gilt, swap, CPI). These are factual figures — state the live numbers; a source is optional for these.',
       'Aim for ~8 top10, ~6 competitors, ~6 sponsors, ~6 deals, ~4 finance, ~5 weekly, ~4-6 rates, ~5 talking points — fewer only if the news genuinely does not support more. Prefer a valid https sourceUrl per item (sources[].url for top10); items without one are shown as UNVERIFIED, so never fabricate a source.'
     ].join('\n');
@@ -4097,6 +4097,7 @@
     try { renderRates('rates-table'); renderRates('rates-table-full'); } catch (e) { console.error('renderRates', e); }
     try { renderTalking(); } catch (e) { console.error('renderTalking', e); }
     try { if (typeof ptRenderCompetitorPartners === 'function') ptRenderCompetitorPartners(); } catch (e) { console.error('ptRenderCompetitorPartners', e); }
+    try { if (typeof ptRenderSponsorRegistry === 'function') ptRenderSponsorRegistry(); } catch (e) { console.error('ptRenderSponsorRegistry', e); }
   }
 
   function ptRunDailyIntel() {
@@ -4651,6 +4652,18 @@
     }
     host.innerHTML = '';
 
+    // Live sponsor intel (from the weekly pull) to surface per-firm "latest activity".
+    var liveIntelS = ptGetIntel();
+    var liveSpon = (liveIntelS && Array.isArray(liveIntelS.sponsors)) ? liveIntelS.sponsors : [];
+    var findLiveSponsor = function (name) {
+      var lf = (name || '').toLowerCase();
+      for (var i = 0; i < liveSpon.length; i++) {
+        var sf = (liveSpon[i].name || '').toLowerCase();
+        if (sf && (sf.indexOf(lf) !== -1 || lf.indexOf(sf) !== -1)) return liveSpon[i];
+      }
+      return null;
+    };
+
     // First: watchlist sponsors not already in the hard-coded registry
     var watched = ptGetWatchlist('sponsor');
     var existingNames = SPONSOR_REGISTRY.map(function (s) { return s.name.toLowerCase(); });
@@ -4715,6 +4728,13 @@
       }
 
       row('Profile', s.summary);
+
+      var ls = findLiveSponsor(s.name);
+      if (ls && ls.stance) {
+        var liveHtml = ptInline(ls.stance) +
+          (ls.sourceUrl ? ' <a href="' + ptEscape(ls.sourceUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--ink-mid)">· ' + ptEscape(ls.sourceName || 'source') + ' →</a>' : '');
+        row('Latest · LIVE', liveHtml, true);
+      }
 
       if (s.people && s.people.length) {
         var peopleHtml = s.people.map(function (p) {
